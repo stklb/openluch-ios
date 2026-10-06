@@ -1,0 +1,599 @@
+{
+ "list": [
+  {
+   "id": 56,
+   "equipmentModelId": 2,
+   "serialNumber": "018395",
+   "sealNumber": "",
+   "lastCalibrationDate": "2024-07-02T00:00:00",
+   "scheduledCalibrationDate": "2027-07-01T00:00:00",
+   "calibrationResultId": null,
+   "calibrationOrganization": null,
+   "calibrationStateRegisterNumber": null,
+   "calibrationResult": null,
+   "calibrationSyncDate": "2024-12-03T00:00:00",
+   "noSyncCalibration": false,
+   "ignoreCalibrationNotification": false,
+   "equipmentModificationId": 105,
+   "password": "********",
+   "secondLevelPassword": "********",
+   "comment": "",
+   "networkAddress": "018395",
+   "modem": null,
+   "lastReadParameters": {
+    "hardwareVersion": "",
+    "firmwareVersion": "02.26",
+    "timeDifference": -593,
+    "batteryLevel": null,
+    "electricLoadState": null,
+    "lastClockCorrectionDate": null,
+    "batteryLow": null,
+    "configDbReadDate": null
+   },
+   "pollSettings": {
+    "responseDelay": 0,
+    "connections": [
+     {
+      "id": 3504,
+      "commLinkType": "Gsm",
+      "commDeviceEquipmentId": null,
+      "commDevice": null
+     },
+     {
+      "id": 3505,
+      "commLinkType": "Gprs",
+      "commDeviceEquipmentId": 8919,
+      "commDevice": {
+       "id": 8919,
+       "model": {
+        "id": 203,
+        "title": "ЛЭРС GSM Lite"
+       },
+       "serialNumber": "10084"
+      }
+     }
+    ]
+   },
+   "isShared": false,
+   "divisionId": null,
+   "stateRegisterNumber": null,
+   "signalDescriptions": null
+  },
+  {
+   "id": 905,
+   "equipmentModelId": 4,
+   "serialNumber": "9032",
+   "sealNumber": null,
+   "lastCalibrationDate": "2024-07-19T00:00:00",
+   "scheduledCalibrationDate": "2028-07-18T00:00:00",
+   "calibrationResultId": "1-355640981",
+   "calibrationOrganization": "Западно-Сибирский филиал ФГУП \"ВНИИФТРИ\"",
+   "calibrationStateRegisterNumber": "28895-05",
+   "calibrationResult": 1,
+   "calibrationSyncDate": "2024-11-08T00:00:00",
+   "noSyncCalibration": false,
+   "ignoreCalibrationNotification": false,
+   "equipmentModificationId": null,
+   "password": "********",
+   "secondLevelPassword": "********",
+   "comment": "",
+   "networkAddress": "90",
+   "modem": null,
+   "lastReadParameters": {
+    "hardwareVersion": "",
+    "firmwareVersion": "2",
+    "timeDifference": -12,
+    "batteryLevel": null,
+    "electricLoadState": null,
+    "lastClockCorrectionDate": "2026-09-30T00:30:43.317",
+    "batteryLow": null,
+    "configDbReadDate": "2025-03-11T14:19:00"
+   },
+   "pollSettings": {
+    "responseDelay": 0,
+    "connections": [
+     {
+      "id": 548,
+      "commLinkType": "Ip",
+      "internetHost": "192.168.1.222",
+      "internetPort": 4001,
+      "commDeviceEquipmentId": null,
+      "commDevice": null
+     }
+    ]
+   },
+   "isShared": false,
+   "divisionId": null,
+   "stateRegisterNumber": null,
+   "signalDescriptions": null
+  },
+  {
+   "id": 1086,
+   "equipmentModelId": 81,
+   "serialNumber": "009233029000075",
+   "sealNumber": null,
+   "lastCalibrationDate": null,
+   "scheduledCalibrationDate": null,
+   "calibrationResultId": null,
+   "calibrationOrganization": null,
+   "calibrationStateRegisterNumber": null,
+   "calibrationResult": null,
+   "calibrationSyncDate": "2026-04-13T00:00:00",
+   "noSyncCalibration": false,
+   "ignoreCalibrationNotification": false,
+   "equipmentModificationId": null,
+   "password": "********",
+   "secondLevelPassword": "********",
+   "comment": "",
+   "networkAddress": "75",
+   "modem": null,
+   "lastReadParameters": {
+    "hardwareVersion": "",
+    "firmwareVersion": "CE303v6.3s4",
+    "timeDifference": -121,
+    "batteryLevel": null,
+    "electricLoadState": null,
+    "lastClockCorrectionDate": "2026-10-03T02:35:00.24",
+    "batteryLow": null,
+    "configDbReadDate": null
+   },
+   "pollSettings": {
+    "responseDelay": 0,
+    "connections": [
+     {
+      "id": 1437,
+      "commLinkType": "Ip",
+      "internetHost": "192.168.1.254",
+      "internetPort": 4002,
+      "commDeviceEquipmentId": null,
+      "commDevice": null
+     }
+    ]
+   },
+   "isShared": false,
+   "divisionId": null,
+   "stateRegisterNumber": null,
+   "signalDescriptions": null
+  },
+  {
+   "id": 8919,
+   "equipmentModelId": 203,
+   "serialNumber": "10084",
+   "sealNumber": null,
+   "lastCalibrationDate": null,
+   "scheduledCalibrationDate": null,
+   "calibrationResultId": null,
+   "calibrationOrganization": null,
+   "calibrationStateRegisterNumber": null,
+   "calibrationResult": null,
+   "calibrationSyncDate": null,
+   "noSyncCalibration": false,
+   "ignoreCalibrationNotification": false,
+   "equipmentModificationId": null,
+   "password": "********",
+   "secondLevelPassword": "********",
+   "comment": "Коммерческий учет, устновлен: 5-ти этажное здание, 1-й этаж, под лестницей",
+   "networkAddress": null,
+   "modem": null,
+   "lastReadParameters": {
+    "hardwareVersion": "ЛЭРС GSM Lite 3.7.1",
+    "firmwareVersion": "L3.4.18",
+    "timeDifference": null,
+    "batteryLevel": null,
+    "electricLoadState": null,
+    "lastClockCorrectionDate": null,
+    "batteryLow": null,
+    "configDbReadDate": null
+   },
+   "pollSettings": null,
+   "isShared": false,
+   "divisionId": null,
+   "stateRegisterNumber": null,
+   "signalDescriptions": null
+  },
+  {
+   "id": 11628,
+   "equipmentModelId": 203,
+   "serialNumber": "19860",
+   "sealNumber": "",
+   "lastCalibrationDate": null,
+   "scheduledCalibrationDate": null,
+   "calibrationResultId": null,
+   "calibrationOrganization": null,
+   "calibrationStateRegisterNumber": null,
+   "calibrationResult": null,
+   "calibrationSyncDate": null,
+   "noSyncCalibration": false,
+   "ignoreCalibrationNotification": false,
+   "equipmentModificationId": null,
+   "password": "********",
+   "secondLevelPassword": "********",
+   "comment": "",
+   "networkAddress": "",
+   "modem": null,
+   "lastReadParameters": {
+    "hardwareVersion": "1.X.X",
+    "firmwareVersion": "L10.3.24",
+    "timeDifference": null,
+    "batteryLevel": null,
+    "electricLoadState": null,
+    "lastClockCorrectionDate": null,
+    "batteryLow": null,
+    "configDbReadDate": null
+   },
+   "pollSettings": null,
+   "isShared": true,
+   "divisionId": null,
+   "stateRegisterNumber": null,
+   "signalDescriptions": null
+  },
+  {
+   "id": 12985,
+   "equipmentModelId": 764,
+   "serialNumber": "00005",
+   "sealNumber": "",
+   "lastCalibrationDate": null,
+   "scheduledCalibrationDate": null,
+   "calibrationResultId": null,
+   "calibrationOrganization": null,
+   "calibrationStateRegisterNumber": null,
+   "calibrationResult": null,
+   "calibrationSyncDate": null,
+   "noSyncCalibration": false,
+   "ignoreCalibrationNotification": false,
+   "equipmentModificationId": null,
+   "password": "********",
+   "secondLevelPassword": "********",
+   "comment": "",
+   "networkAddress": "",
+   "modem": null,
+   "lastReadParameters": {
+    "hardwareVersion": "1.0",
+    "firmwareVersion": "M1.0.2",
+    "timeDifference": null,
+    "batteryLevel": null,
+    "electricLoadState": null,
+    "lastClockCorrectionDate": null,
+    "batteryLow": null,
+    "configDbReadDate": null
+   },
+   "pollSettings": null,
+   "isShared": false,
+   "divisionId": null,
+   "stateRegisterNumber": null,
+   "signalDescriptions": null
+  }
+ ],
+ "modelList": [
+  {
+   "id": 2,
+   "customId": null,
+   "isSystem": true,
+   "title": "КМ-5-4",
+   "reportTitle": null,
+   "longTitle": "",
+   "comment": "",
+   "capabilities": "Gauge",
+   "serialNumberFormat": "\\d{1,10}",
+   "serialNumberComment": "Целое число, до 10 знаков",
+   "isNumericSerial": false,
+   "stateRegisterTypeTitle": "КМ-5",
+   "calibrationInterval": 4,
+   "isTemperatureSensor": false,
+   "isPressureSensor": false,
+   "isPressureDropSensor": false,
+   "isFlowSensor": true,
+   "isElectricMeter": false,
+   "phases": "None",
+   "isCurrentTransformer": false,
+   "isVoltageTransformer": false,
+   "supportedSystemTypes": "Heat, HotWater, ColdWater, Sewage",
+   "supportedCommLinks": "None",
+   "supportedCallTypes": "None",
+   "modemFeatures": "None",
+   "dryContactCount": 0,
+   "dataInterface": null,
+   "modifications": [],
+   "ports": [],
+   "stateRegisterNumbers": [
+    {
+     "number": "18361-10",
+     "calibrationInterval": null
+    },
+    {
+     "number": "18361-99",
+     "calibrationInterval": null
+    },
+    {
+     "number": "18361-01",
+     "calibrationInterval": null
+    },
+    {
+     "number": "18361-06",
+     "calibrationInterval": null
+    }
+   ],
+   "customAttributeValues": [],
+   "universalDriver": "None"
+  },
+  {
+   "id": 4,
+   "customId": null,
+   "isSystem": true,
+   "title": "СПТ943",
+   "reportTitle": null,
+   "longTitle": "",
+   "comment": "У приборов с версией ПО 2.0.x.x и выше есть суточный архив интеграторов.\r\nУ старых приборов есть только текущие, на начало часа в котором произошло чтение и на момент чтения",
+   "capabilities": "Gauge",
+   "serialNumberFormat": "",
+   "serialNumberComment": "",
+   "isNumericSerial": false,
+   "stateRegisterTypeTitle": null,
+   "calibrationInterval": 4,
+   "isTemperatureSensor": false,
+   "isPressureSensor": false,
+   "isPressureDropSensor": false,
+   "isFlowSensor": false,
+   "isElectricMeter": false,
+   "phases": "None",
+   "isCurrentTransformer": false,
+   "isVoltageTransformer": false,
+   "supportedSystemTypes": "Heat, HotWater, ColdWater, Sewage",
+   "supportedCommLinks": "None",
+   "supportedCallTypes": "None",
+   "modemFeatures": "None",
+   "dryContactCount": 0,
+   "dataInterface": null,
+   "modifications": [],
+   "ports": [],
+   "stateRegisterNumbers": [
+    {
+     "number": "28895-05",
+     "calibrationInterval": null
+    }
+   ],
+   "customAttributeValues": [],
+   "universalDriver": "None"
+  },
+  {
+   "id": 81,
+   "customId": null,
+   "isSystem": true,
+   "title": "СЕ 303",
+   "reportTitle": null,
+   "longTitle": "",
+   "comment": "",
+   "capabilities": "Gauge",
+   "serialNumberFormat": "",
+   "serialNumberComment": "",
+   "isNumericSerial": false,
+   "stateRegisterTypeTitle": null,
+   "calibrationInterval": 16,
+   "isTemperatureSensor": false,
+   "isPressureSensor": false,
+   "isPressureDropSensor": false,
+   "isFlowSensor": false,
+   "isElectricMeter": true,
+   "phases": "None",
+   "isCurrentTransformer": false,
+   "isVoltageTransformer": false,
+   "supportedSystemTypes": "Electricity",
+   "supportedCommLinks": "None",
+   "supportedCallTypes": "None",
+   "modemFeatures": "None",
+   "dryContactCount": 0,
+   "dataInterface": null,
+   "modifications": [],
+   "ports": [],
+   "stateRegisterNumbers": [
+    {
+     "number": "33446-06",
+     "calibrationInterval": null
+    },
+    {
+     "number": "33446-08",
+     "calibrationInterval": null
+    }
+   ],
+   "customAttributeValues": [],
+   "universalDriver": "None"
+  },
+  {
+   "id": 203,
+   "customId": null,
+   "isSystem": true,
+   "title": "ЛЭРС GSM Lite",
+   "reportTitle": null,
+   "longTitle": "",
+   "comment": "",
+   "capabilities": "CommunicationDevice",
+   "serialNumberFormat": "\\d{0,10}",
+   "serialNumberComment": "",
+   "isNumericSerial": false,
+   "stateRegisterTypeTitle": null,
+   "calibrationInterval": 0,
+   "isTemperatureSensor": false,
+   "isPressureSensor": false,
+   "isPressureDropSensor": false,
+   "isFlowSensor": false,
+   "isElectricMeter": false,
+   "phases": "None",
+   "isCurrentTransformer": false,
+   "isVoltageTransformer": false,
+   "supportedSystemTypes": "None",
+   "supportedCommLinks": "Gsm, Gprs",
+   "supportedCallTypes": "Voice, Csd, Sms",
+   "modemFeatures": "GprsSupportsStopCommand",
+   "dryContactCount": 0,
+   "dataInterface": null,
+   "modifications": [],
+   "ports": [],
+   "stateRegisterNumbers": [],
+   "customAttributeValues": [],
+   "universalDriver": "None"
+  },
+  {
+   "id": 764,
+   "customId": null,
+   "isSystem": true,
+   "title": "ЛЭРС GSM Mini",
+   "reportTitle": null,
+   "longTitle": "Модем ЛЭРС GSM Mini",
+   "comment": "Модем может использоваться для опроса подключенных приборов, а также в качестве диспетчерского модема для организации связи с другими модемами и передачи данных между ними и сервером диспетчеризации. ",
+   "capabilities": "CommunicationDevice",
+   "serialNumberFormat": "\\d{0,10}",
+   "serialNumberComment": "Серийный номер состоит из цифр.",
+   "isNumericSerial": false,
+   "stateRegisterTypeTitle": "",
+   "calibrationInterval": 0,
+   "isTemperatureSensor": false,
+   "isPressureSensor": false,
+   "isPressureDropSensor": false,
+   "isFlowSensor": false,
+   "isElectricMeter": false,
+   "phases": "None",
+   "isCurrentTransformer": false,
+   "isVoltageTransformer": false,
+   "supportedSystemTypes": "None",
+   "supportedCommLinks": "Gsm, Gprs",
+   "supportedCallTypes": "Voice, Csd, Sms",
+   "modemFeatures": "GprsSupportsStopCommand",
+   "dryContactCount": 0,
+   "dataInterface": null,
+   "modifications": [],
+   "ports": [],
+   "stateRegisterNumbers": [],
+   "customAttributeValues": [],
+   "universalDriver": "None"
+  }
+ ],
+ "nodes": [
+  {
+   "id": 1235,
+   "divisionId": null,
+   "title": "Отдел РЭЭС",
+   "number": 8,
+   "customId": "8",
+   "address": "г. Амурск",
+   "fiasId": null,
+   "comment": "",
+   "customerId": null,
+   "responsibleName": "Иванов Иван Иванович",
+   "responsiblePhone": null,
+   "servicemanId": 1226,
+   "serviceCompanyId": 5,
+   "state": "NoData",
+   "compositeState": {
+    "measurePointState": "NoData",
+    "incidentState": "None",
+    "jobState": "None",
+    "calibrationState": "None"
+   },
+   "territoryId": 1,
+   "type": "Node",
+   "isCommunalPollEnabled": false,
+   "coldWaterSummerTemp": 5,
+   "coldWaterWinterTemp": 5,
+   "licenseCount": 1,
+   "isHeatingSeason": false,
+   "currentSeason": "Summer",
+   "geoLocation": null,
+   "norms": {
+    "coldWater": 0,
+    "hotWater": 0,
+    "heat": 0,
+    "electricity": 0,
+    "gas": 0
+   },
+   "attributes": null,
+   "powerSources": null,
+   "holidaySettings": null,
+   "useHeatSourceParameters": false,
+   "contractTemperatureChartId": null,
+   "temperatureComplianceAnalysisType": "T_outdoor",
+   "stability": null
+  },
+  {
+   "id": 1672,
+   "divisionId": null,
+   "title": "ТСЖ \"Семь ветров\"",
+   "number": 727,
+   "customId": "727",
+   "address": "Хабаровский Край, Город Хабаровск, Улица Тихоокеанская, 221б",
+   "fiasId": "e0361f2e-68dd-4c2d-bcbb-246f65b7bac0",
+   "comment": "демо-объект",
+   "customerId": 194,
+   "responsibleName": "Иванов Иван Иванович",
+   "responsiblePhone": null,
+   "servicemanId": 409,
+   "serviceCompanyId": 5,
+   "state": "Normal",
+   "compositeState": {
+    "measurePointState": "Normal",
+    "incidentState": "None",
+    "jobState": "None",
+    "calibrationState": "None"
+   },
+   "territoryId": 1,
+   "type": "House",
+   "isCommunalPollEnabled": true,
+   "coldWaterSummerTemp": 0,
+   "coldWaterWinterTemp": 0,
+   "licenseCount": 1,
+   "isHeatingSeason": false,
+   "currentSeason": "Summer",
+   "geoLocation": {
+    "latitude": 48.55225295,
+    "longitude": 135.03747065
+   },
+   "norms": {
+    "coldWater": 0.24,
+    "hotWater": 0.105,
+    "heat": 0.001,
+    "electricity": 100,
+    "gas": 0
+   },
+   "attributes": null,
+   "powerSources": null,
+   "holidaySettings": null,
+   "useHeatSourceParameters": false,
+   "contractTemperatureChartId": 245,
+   "temperatureComplianceAnalysisType": "T_outdoor",
+   "stability": {
+    "value": 100,
+    "change": "None",
+    "calcDate": "2026-10-02T14:45:11.5239277"
+   }
+  }
+ ],
+ "nodeEquipment": [
+  {
+   "nodeId": 1235,
+   "equipmentId": 11628
+  },
+  {
+   "nodeId": 1672,
+   "equipmentId": 56
+  },
+  {
+   "nodeId": 1672,
+   "equipmentId": 905
+  },
+  {
+   "nodeId": 1672,
+   "equipmentId": 1086
+  },
+  {
+   "nodeId": 1672,
+   "equipmentId": 8919
+  },
+  {
+   "nodeId": 1672,
+   "equipmentId": 11628
+  },
+  {
+   "nodeId": 1672,
+   "equipmentId": 12985
+  }
+ ]
+}

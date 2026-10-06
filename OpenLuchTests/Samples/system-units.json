@@ -1,0 +1,55 @@
+{
+  "pressureType": "Absolute",
+  "monthConsumption": [],
+  "dayConsumption": [],
+  "hourConsumption": [],
+  "intervalConsumption": [],
+  "currentConsumption": [],
+  "dataParametersUnit": [
+    {
+      "dataParameterCategory": "Temperature",
+      "unit": "CelsiusDegree"
+    },
+    {
+      "dataParameterCategory": "Pressure",
+      "unit": "TechnicalAt"
+    },
+    {
+      "dataParameterCategory": "PressureDrop",
+      "unit": "TechnicalAt"
+    },
+    {
+      "dataParameterCategory": "Mass",
+      "unit": "Ton"
+    },
+    {
+      "dataParameterCategory": "Volume",
+      "unit": "CubicMeter"
+    },
+    {
+      "dataParameterCategory": "Heat",
+      "unit": "GigaCalorie"
+    },
+    {
+      "dataParameterCategory": "Time",
+      "unit": "Hour"
+    },
+    {
+      "dataParameterCategory": "WaterLevel",
+      "unit": "Meter"
+    },
+    {
+      "dataParameterCategory": "ValvePercent",
+      "unit": "Percent"
+    },
+    {
+      "dataParameterCategory": "Humidity",
+      "unit": "None"
+    },
+    {
+      "dataParameterCategory": "CarbonDioxideContent",
+      "unit": "Ppm"
+    }
+  ],
+  "summary": null
+}

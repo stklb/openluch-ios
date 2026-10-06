@@ -1,0 +1,63 @@
+{
+  "dateTime": "2026-10-03T00:00:00",
+  "attributes": [
+    "HourTotals",
+    "DayTotals"
+  ],
+  "values": [
+    {
+      "dataParameterId": 5,
+      "dataParameter": "M_in",
+      "value": 7756.43017578125,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 6,
+      "dataParameter": "M_out",
+      "value": 7557.19287109375,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 7,
+      "dataParameter": "V_in",
+      "value": 7978.76904296875,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 8,
+      "dataParameter": "V_out",
+      "value": 7658.455078125,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 11,
+      "dataParameter": "Q_delta",
+      "value": 220.6280975341797,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 15,
+      "dataParameter": "NormalOperationDuration",
+      "value": 6599.736328125,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Xcode: личные настройки пользователя и результаты сборки (в git не нужны)
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+*.ipa
+*.dSYM.zip
+*.dSYM

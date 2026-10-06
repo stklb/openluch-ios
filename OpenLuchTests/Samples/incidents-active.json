@@ -1,0 +1,46 @@
+[
+ {
+  "id": 501,
+  "nodeId": 1672,
+  "measurePointId": 686,
+  "equipmentId": 56,
+  "incidentType": "TempGreaterThanMax",
+  "startDate": "2026-10-02T14:00:00",
+  "endDate": "0001-01-01T00:00:00",
+  "diagDate": "2026-10-02T05:10:00Z",
+  "importance": "Warning",
+  "isClosed": false,
+  "description": "Температура в подающем трубопроводе выше максимальной (95 °C)",
+  "shortDesc": "Температура выше максимума",
+  "dataType": "Hour",
+  "entityTitle": "ТСЖ \"Семь ветров\" - Отопление и ГВС",
+  "address": "",
+  "diagExpression": "T_in > 95",
+  "season": "Winter",
+  "criticality": {
+   "value": 0.6,
+   "level": "Medium"
+  }
+ },
+ {
+  "id": 502,
+  "nodeId": 1672,
+  "measurePointId": 686,
+  "equipmentId": null,
+  "incidentType": "BadDataReceived",
+  "startDate": "2026-10-03T08:00:00",
+  "endDate": "2026-10-03T09:00:00",
+  "diagDate": "2026-10-03T00:00:00Z",
+  "importance": "Critical",
+  "isClosed": false,
+  "description": "Получены недостоверные данные",
+  "shortDesc": null,
+  "dataType": "Current",
+  "entityTitle": null,
+  "address": null,
+  "diagExpression": null,
+  "season": null,
+  "criticality": null,
+  "someNewField": 123
+ }
+]

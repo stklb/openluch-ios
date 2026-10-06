@@ -1,0 +1,617 @@
+{
+ "measurePoint": {
+  "id": 686,
+  "title": "Отопление и ГВС",
+  "fullTitle": "ТСЖ \"Семь ветров\" - Отопление и ГВС",
+  "systemType": "Heat"
+ },
+ "sensorList": [
+  {
+   "equipmentId": 10055,
+   "equipment": null,
+   "measurePointId": 0,
+   "parameter": "T_in",
+   "order": 0
+  },
+  {
+   "equipmentId": 10055,
+   "equipment": null,
+   "measurePointId": 0,
+   "parameter": "T_out",
+   "order": 0
+  },
+  {
+   "equipmentId": 56,
+   "equipment": null,
+   "measurePointId": 0,
+   "parameter": "V_in",
+   "order": 0
+  },
+  {
+   "equipmentId": 9604,
+   "equipment": null,
+   "measurePointId": 0,
+   "parameter": "V_out",
+   "order": 0
+  },
+  {
+   "equipmentId": 11445,
+   "equipment": null,
+   "measurePointId": 0,
+   "parameter": "P_in",
+   "order": 0
+  },
+  {
+   "equipmentId": 11446,
+   "equipment": null,
+   "measurePointId": 0,
+   "parameter": "P_out",
+   "order": 0
+  }
+ ],
+ "availableReportTemplates": [],
+ "reports": [
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 4,
+   "reportTitle": "Акт выхода из строя узла учета",
+   "reportTemplateId": 255,
+   "reportTemplateTitle": "Акт о выходе из строя узла учета воды (ХТСК)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 1,
+   "reportTitle": "Акт периодической проверки узла учета (1 лист)",
+   "reportTemplateId": 613,
+   "reportTemplateTitle": "_       Акт периодической проверки (новый 23)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 3,
+   "reportTitle": "Акт периодической проверки узла учёта (2 листа)",
+   "reportTemplateId": 560,
+   "reportTemplateTitle": "Акт ПЕРИОДИЧЕСКОЙ ПРОВЕРКИ узла учета"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 6,
+   "reportTitle": "Акт пломбировки оборудования узла учета",
+   "reportTemplateId": 561,
+   "reportTemplateTitle": "Акт ПЛОМБИРОВКИ (ПОЛНЫЙ, 1 лист) оборудования от границы раздела"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 7,
+   "reportTitle": "Акт постановки на сервисное обслуживание",
+   "reportTemplateId": 603,
+   "reportTemplateTitle": "Акт постановки узла учета на обслуживание (ХТСК)_29"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 5,
+   "reportTitle": "Акт проверки узла учета",
+   "reportTemplateId": 631,
+   "reportTemplateTitle": "! Акт проверки установленного и введенного в эксплуатацию узла учета (новый)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 2,
+   "reportTitle": "Акт снятия узла учета с обслуживания",
+   "reportTemplateId": 262,
+   "reportTemplateTitle": "Акт снятия узла учета с обслуживания (ХТСК)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 38,
+   "reportTitle": "Ведомость параметров для точек учета (системный)",
+   "reportTemplateId": 44,
+   "reportTemplateTitle": "Теплоснабжение (системная, одностраничная)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 126,
+   "reportTitle": "НОВЫЙ отчет о теплопотреблении в теплофикационной воде",
+   "reportTemplateId": 572,
+   "reportTemplateTitle": "_     Отчет о теплопотреблении в теплофикационной воде (Новый)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 127,
+   "reportTitle": "Посуточная ведомость учета параметров теплопотребления",
+   "reportTemplateId": 553,
+   "reportTemplateTitle": "_     Посуточная ведомость учета параметров теплопотребления (Новый)"
+  },
+  {
+   "measurePointId": 686,
+   "measurePointTitle": "Отопление и ГВС",
+   "reportId": 111,
+   "reportTitle": "СТАРЫЙ отчет о теплопотреблении в теплофикационной воде",
+   "reportTemplateId": 167,
+   "reportTemplateTitle": "Отопление, ХТСК (суточный архив, масса, штрих-код)"
+  }
+ ],
+ "reportsWithAvailableReportTemplates": [
+  {
+   "id": 1,
+   "title": "Акт периодической проверки узла учета (1 лист)",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "RaisingOn",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} от {StartDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 2,
+   "title": "Акт снятия узла учета с обслуживания",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "Dispose",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} от {StartDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 3,
+   "title": "Акт периодической проверки узла учёта (2 листа)",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "RepeatedPermit",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} от {StartDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 4,
+   "title": "Акт выхода из строя узла учета",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "Failure",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} от {StartDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 5,
+   "title": "Акт проверки узла учета",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "Check",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} от {StartDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 6,
+   "title": "Акт пломбировки оборудования узла учета",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "FirstPermit",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} от {StartDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 7,
+   "title": "Акт постановки на сервисное обслуживание",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "LowQualityWater",
+   "isAct": true,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint}, {Address} c {StartDate:d} по {EndDate:d}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 38,
+   "title": "Ведомость параметров для точек учета (системный)",
+   "isSystem": true,
+   "entity": "MeasurePoint",
+   "reportType": "ParametersSheet",
+   "isAct": false,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Template}, {Node} - {MeasurePoint} c {StartDate:d} по {EndDate:d} ({DataType})",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 111,
+   "title": "СТАРЫЙ отчет о теплопотреблении в теплофикационной воде",
+   "isSystem": false,
+   "entity": "MeasurePoint",
+   "reportType": "ParametersSheet",
+   "isAct": false,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Node} - {MeasurePoint} {Address} с {StartDate:d} по {EndDate:d}, {DataType}",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 126,
+   "title": "НОВЫЙ отчет о теплопотреблении в теплофикационной воде",
+   "isSystem": false,
+   "entity": "MeasurePoint",
+   "reportType": "ParametersSheet",
+   "isAct": false,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Node} {MeasurePoint} ( {DataType} с {StartDate:d} по {EndDate:d} )",
+   "template": null,
+   "reportParameters": null
+  },
+  {
+   "id": 127,
+   "title": "Посуточная ведомость учета параметров теплопотребления",
+   "isSystem": false,
+   "entity": "MeasurePoint",
+   "reportType": "ParametersSheet",
+   "isAct": false,
+   "reportTemplateId": null,
+   "fileNameFormat": "{Node} {MeasurePoint} {StartDate:d} - {EndDate:d}",
+   "template": null,
+   "reportParameters": null
+  }
+ ],
+ "nodeEquipment": {
+  "list": [
+   {
+    "id": 56,
+    "equipmentModelId": 2,
+    "serialNumber": "018395",
+    "sealNumber": "",
+    "lastCalibrationDate": "2024-07-02T00:00:00",
+    "scheduledCalibrationDate": "2027-07-01T00:00:00",
+    "calibrationResultId": null,
+    "calibrationOrganization": null,
+    "calibrationStateRegisterNumber": null,
+    "calibrationResult": null,
+    "calibrationSyncDate": "2024-12-03T00:00:00",
+    "noSyncCalibration": false,
+    "ignoreCalibrationNotification": false,
+    "equipmentModificationId": 105,
+    "password": "********",
+    "secondLevelPassword": "********",
+    "comment": "",
+    "networkAddress": "018395",
+    "modem": null,
+    "lastReadParameters": {
+     "hardwareVersion": "",
+     "firmwareVersion": "02.26",
+     "timeDifference": -593,
+     "batteryLevel": null,
+     "electricLoadState": null,
+     "lastClockCorrectionDate": null,
+     "batteryLow": null,
+     "configDbReadDate": null
+    },
+    "pollSettings": null,
+    "isShared": false,
+    "divisionId": null,
+    "stateRegisterNumber": null,
+    "signalDescriptions": []
+   },
+   {
+    "id": 10055,
+    "equipmentModelId": 197,
+    "serialNumber": "2198",
+    "sealNumber": "",
+    "lastCalibrationDate": "2023-05-25T00:00:00",
+    "scheduledCalibrationDate": "2027-05-24T00:00:00",
+    "calibrationResultId": "1-249216083",
+    "calibrationOrganization": "ООО \"РИМЕЙК\"",
+    "calibrationStateRegisterNumber": "22556-02",
+    "calibrationResult": 1,
+    "calibrationSyncDate": "2024-11-16T00:00:00",
+    "noSyncCalibration": false,
+    "ignoreCalibrationNotification": false,
+    "equipmentModificationId": 295,
+    "password": "********",
+    "secondLevelPassword": "********",
+    "comment": "",
+    "networkAddress": "",
+    "modem": null,
+    "lastReadParameters": null,
+    "pollSettings": null,
+    "isShared": false,
+    "divisionId": null,
+    "stateRegisterNumber": null,
+    "signalDescriptions": []
+   },
+   {
+    "id": 9604,
+    "equipmentModelId": 194,
+    "serialNumber": "018826",
+    "sealNumber": "",
+    "lastCalibrationDate": "2024-07-02T00:00:00",
+    "scheduledCalibrationDate": "2027-07-02T00:00:00",
+    "calibrationResultId": null,
+    "calibrationOrganization": null,
+    "calibrationStateRegisterNumber": null,
+    "calibrationResult": null,
+    "calibrationSyncDate": "2024-12-09T00:00:00",
+    "noSyncCalibration": false,
+    "ignoreCalibrationNotification": true,
+    "equipmentModificationId": 266,
+    "password": "********",
+    "secondLevelPassword": "********",
+    "comment": "",
+    "networkAddress": "",
+    "modem": null,
+    "lastReadParameters": null,
+    "pollSettings": null,
+    "isShared": false,
+    "divisionId": null,
+    "stateRegisterNumber": null,
+    "signalDescriptions": []
+   },
+   {
+    "id": 11445,
+    "equipmentModelId": 10139,
+    "serialNumber": "2052161",
+    "sealNumber": "",
+    "lastCalibrationDate": "2024-06-20T00:00:00",
+    "scheduledCalibrationDate": "2027-06-19T00:00:00",
+    "calibrationResultId": "1-351769570",
+    "calibrationOrganization": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"РИМЕЙК\"(ООО \"РИМЕЙК\")",
+    "calibrationStateRegisterNumber": "45743-10",
+    "calibrationResult": 1,
+    "calibrationSyncDate": "2024-12-09T00:00:00",
+    "noSyncCalibration": false,
+    "ignoreCalibrationNotification": false,
+    "equipmentModificationId": null,
+    "password": "********",
+    "secondLevelPassword": "********",
+    "comment": "",
+    "networkAddress": "",
+    "modem": null,
+    "lastReadParameters": null,
+    "pollSettings": null,
+    "isShared": false,
+    "divisionId": null,
+    "stateRegisterNumber": "45743-10",
+    "signalDescriptions": []
+   },
+   {
+    "id": 11446,
+    "equipmentModelId": 10139,
+    "serialNumber": "2052185",
+    "sealNumber": "",
+    "lastCalibrationDate": "2024-06-20T00:00:00",
+    "scheduledCalibrationDate": "2027-06-19T00:00:00",
+    "calibrationResultId": "1-351769569",
+    "calibrationOrganization": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"РИМЕЙК\"(ООО \"РИМЕЙК\")",
+    "calibrationStateRegisterNumber": "45743-10",
+    "calibrationResult": 1,
+    "calibrationSyncDate": "2024-12-09T00:00:00",
+    "noSyncCalibration": false,
+    "ignoreCalibrationNotification": false,
+    "equipmentModificationId": null,
+    "password": "********",
+    "secondLevelPassword": "********",
+    "comment": "",
+    "networkAddress": "",
+    "modem": null,
+    "lastReadParameters": null,
+    "pollSettings": null,
+    "isShared": false,
+    "divisionId": null,
+    "stateRegisterNumber": "45743-10",
+    "signalDescriptions": []
+   }
+  ],
+  "modelList": [
+   {
+    "id": 2,
+    "customId": null,
+    "isSystem": true,
+    "title": "КМ-5-4",
+    "reportTitle": null,
+    "longTitle": "",
+    "comment": "",
+    "capabilities": "Gauge",
+    "serialNumberFormat": "\\d{1,10}",
+    "serialNumberComment": "Целое число, до 10 знаков",
+    "isNumericSerial": false,
+    "stateRegisterTypeTitle": "КМ-5",
+    "calibrationInterval": 4,
+    "isTemperatureSensor": false,
+    "isPressureSensor": false,
+    "isPressureDropSensor": false,
+    "isFlowSensor": true,
+    "isElectricMeter": false,
+    "phases": "None",
+    "isCurrentTransformer": false,
+    "isVoltageTransformer": false,
+    "supportedSystemTypes": "Heat, HotWater, ColdWater, Sewage",
+    "supportedCommLinks": "None",
+    "supportedCallTypes": "None",
+    "modemFeatures": "None",
+    "dryContactCount": 0,
+    "dataInterface": null,
+    "modifications": [],
+    "ports": [],
+    "stateRegisterNumbers": [
+     {
+      "number": "18361-10",
+      "calibrationInterval": null
+     },
+     {
+      "number": "18361-99",
+      "calibrationInterval": null
+     },
+     {
+      "number": "18361-01",
+      "calibrationInterval": null
+     },
+     {
+      "number": "18361-06",
+      "calibrationInterval": null
+     }
+    ],
+    "customAttributeValues": [],
+    "universalDriver": "None"
+   },
+   {
+    "id": 194,
+    "customId": null,
+    "isSystem": true,
+    "title": "ППС",
+    "reportTitle": null,
+    "longTitle": "",
+    "comment": "",
+    "capabilities": "Gauge",
+    "serialNumberFormat": "",
+    "serialNumberComment": "",
+    "isNumericSerial": false,
+    "stateRegisterTypeTitle": null,
+    "calibrationInterval": 4,
+    "isTemperatureSensor": false,
+    "isPressureSensor": false,
+    "isPressureDropSensor": false,
+    "isFlowSensor": true,
+    "isElectricMeter": false,
+    "phases": "None",
+    "isCurrentTransformer": false,
+    "isVoltageTransformer": false,
+    "supportedSystemTypes": "Heat, HotWater, Steam",
+    "supportedCommLinks": "None",
+    "supportedCallTypes": "None",
+    "modemFeatures": "None",
+    "dryContactCount": 0,
+    "dataInterface": null,
+    "modifications": [],
+    "ports": [],
+    "stateRegisterNumbers": [],
+    "customAttributeValues": [],
+    "universalDriver": "None"
+   },
+   {
+    "id": 197,
+    "customId": null,
+    "isSystem": true,
+    "title": "КТСП-Р",
+    "reportTitle": null,
+    "longTitle": "",
+    "comment": "",
+    "capabilities": "Gauge",
+    "serialNumberFormat": "",
+    "serialNumberComment": "",
+    "isNumericSerial": false,
+    "stateRegisterTypeTitle": null,
+    "calibrationInterval": 4,
+    "isTemperatureSensor": true,
+    "isPressureSensor": false,
+    "isPressureDropSensor": false,
+    "isFlowSensor": false,
+    "isElectricMeter": false,
+    "phases": "None",
+    "isCurrentTransformer": false,
+    "isVoltageTransformer": false,
+    "supportedSystemTypes": "Heat, HotWater, ColdWater, Steam, Sewage",
+    "supportedCommLinks": "None",
+    "supportedCallTypes": "None",
+    "modemFeatures": "None",
+    "dryContactCount": 0,
+    "dataInterface": null,
+    "modifications": [],
+    "ports": [],
+    "stateRegisterNumbers": [
+     {
+      "number": "22556-02",
+      "calibrationInterval": null
+     }
+    ],
+    "customAttributeValues": [],
+    "universalDriver": "None"
+   },
+   {
+    "id": 10139,
+    "customId": null,
+    "isSystem": false,
+    "title": "Sitrans P 7MF1563",
+    "reportTitle": null,
+    "longTitle": "SITRANS P 7MF1563",
+    "comment": "",
+    "capabilities": "Gauge",
+    "serialNumberFormat": "",
+    "serialNumberComment": "",
+    "isNumericSerial": false,
+    "stateRegisterTypeTitle": null,
+    "calibrationInterval": 0,
+    "isTemperatureSensor": false,
+    "isPressureSensor": true,
+    "isPressureDropSensor": false,
+    "isFlowSensor": false,
+    "isElectricMeter": false,
+    "phases": "None",
+    "isCurrentTransformer": false,
+    "isVoltageTransformer": false,
+    "supportedSystemTypes": "Heat",
+    "supportedCommLinks": "None",
+    "supportedCallTypes": "None",
+    "modemFeatures": "None",
+    "dryContactCount": 0,
+    "dataInterface": null,
+    "modifications": [],
+    "ports": [],
+    "stateRegisterNumbers": [],
+    "customAttributeValues": [],
+    "universalDriver": "None"
+   }
+  ],
+  "nodes": [
+   {
+    "id": 1235,
+    "title": "Отдел РЭЭС"
+   },
+   {
+    "id": 1672,
+    "title": "ТСЖ \"Семь ветров\""
+   }
+  ],
+  "nodeEquipment": [
+   {
+    "nodeId": 1672,
+    "equipmentId": 56
+   },
+   {
+    "nodeId": 1672,
+    "equipmentId": 9604
+   },
+   {
+    "nodeId": 1672,
+    "equipmentId": 10055
+   },
+   {
+    "nodeId": 1672,
+    "equipmentId": 11445
+   },
+   {
+    "nodeId": 1672,
+    "equipmentId": 11446
+   }
+  ]
+ }
+}

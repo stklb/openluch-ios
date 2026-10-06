@@ -1,0 +1,57 @@
+{
+ "license": {
+  "licenseType": "Corporate",
+  "licenseNumber": "FD543AFF-02",
+  "nodeLicenseCount": 600,
+  "communalPollLicenseCount": 4,
+  "expireDate": "0001-01-01T00:00:00",
+  "subscriptionExpireDate": "2028-08-01T00:00:00",
+  "activationDate": "2026-10-03T14:25:52.378",
+  "nodeUsed": 556,
+  "communalPollUsed": 2,
+  "owner": "ООО \"ЛЭРС\""
+ },
+ "timeZones": [
+  {
+   "offset": -12,
+   "title": "(UTC-12:00) Линия перемены дат"
+  },
+  {
+   "offset": -11,
+   "title": "(UTC-11:00) Время в формате UTC-11"
+  }
+ ],
+ "localTimeZoneOffset": 10,
+ "defaultTerritory": {
+  "id": 1,
+  "parentId": null,
+  "name": "Хабаровск",
+  "timeZoneOffset": 10,
+  "copyMeasurePointId": null,
+  "monthStdTemperature": null,
+  "minOutdoorTemp": null
+ },
+ "guiParameters": {
+  "systems": "Heat, HotWater, ColdWater, Steam, Gas, Electricity, Control",
+  "enabledSystems": [
+   "Heat",
+   "HotWater",
+   "ColdWater",
+   "Steam",
+   "Gas",
+   "Electricity",
+   "Control"
+  ],
+  "enableCommunal": true,
+  "enableHolidaySkin": false,
+  "enableDataTableUserSetting": true,
+  "siteTitle": "ЛЭРС УЧЁТ",
+  "siteDescription": "Веб-интерфейс системы диспетчеризации ООО \"ЛЭРС\"",
+  "logoFileName": null,
+  "loginLogoFileName": null,
+  "adminContacts": "admin@lers.ru",
+  "useTerritoryToSearchGeoLocation": true,
+  "userLinkURL": null,
+  "userLinkText": null
+ }
+}

@@ -1,0 +1,98 @@
+{
+  "dateTime": "2026-10-03T02:48:13",
+  "attributes": [
+    "CurrentTotals"
+  ],
+  "values": [
+    {
+      "dataParameterId": 20,
+      "dataParameter": "Ap1",
+      "value": 252713.124516,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 22,
+      "dataParameter": "Rp1",
+      "value": 457.594263,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 24,
+      "dataParameter": "Ap2",
+      "value": 455716.58973,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 26,
+      "dataParameter": "Rp2",
+      "value": 1154.465112,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 28,
+      "dataParameter": "Ap3",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 30,
+      "dataParameter": "Rp3",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 32,
+      "dataParameter": "Ap4",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 34,
+      "dataParameter": "Rp4",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 36,
+      "dataParameter": "Ap",
+      "value": 708429.7142459999,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 38,
+      "dataParameter": "Rp",
+      "value": 1612.059375,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    }
+  ]
+}

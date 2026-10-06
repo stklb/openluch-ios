@@ -1,0 +1,122 @@
+{
+  "nodes": [
+    {
+      "id": 1672,
+      "divisionId": null,
+      "title": "ТСЖ \"Семь ветров\"",
+      "number": 727,
+      "customId": "727",
+      "address": "Хабаровский Край, Город Хабаровск, Улица Тихоокеанская, 221б",
+      "fiasId": "e0361f2e-68dd-4c2d-bcbb-246f65b7bac0",
+      "comment": "демо-объект",
+      "customerId": 194,
+      "responsibleName": "Иванов Иван Иванович",
+      "responsiblePhone": "+70000000000",
+      "servicemanId": 409,
+      "serviceCompanyId": 5,
+      "state": "Normal",
+      "compositeState": {
+        "measurePointState": "Normal",
+        "incidentState": "None",
+        "jobState": "None",
+        "calibrationState": "None"
+      },
+      "territoryId": 1,
+      "type": "House",
+      "isCommunalPollEnabled": true,
+      "coldWaterSummerTemp": 0,
+      "coldWaterWinterTemp": 0,
+      "licenseCount": 1,
+      "isHeatingSeason": false,
+      "currentSeason": "Summer",
+      "geoLocation": {
+        "latitude": 48.55225295,
+        "longitude": 135.03747065
+      },
+      "norms": {
+        "coldWater": 0.24,
+        "hotWater": 0.105,
+        "heat": 0.001,
+        "electricity": 100,
+        "gas": 0
+      },
+      "attributes": null,
+      "powerSources": null,
+      "holidaySettings": null,
+      "useHeatSourceParameters": false,
+      "contractTemperatureChartId": 245,
+      "temperatureComplianceAnalysisType": "T_outdoor",
+      "stability": {
+        "value": 100,
+        "change": "None",
+        "calcDate": "2026-10-02T14:45:11.5239277"
+      }
+    },
+    {
+      "id": 1673,
+      "divisionId": null,
+      "title": "Котельная №1",
+      "number": 728,
+      "customId": null,
+      "address": "Хабаровский Край, Город Хабаровск, Улица Тихоокеанская, 221б",
+      "fiasId": "e0361f2e-68dd-4c2d-bcbb-246f65b7bac0",
+      "comment": null,
+      "customerId": 194,
+      "responsibleName": null,
+      "responsiblePhone": null,
+      "servicemanId": 409,
+      "serviceCompanyId": 5,
+      "state": "Error",
+      "compositeState": {
+        "measurePointState": "Error",
+        "incidentState": "Error",
+        "jobState": "None",
+        "calibrationState": "None"
+      },
+      "territoryId": 1,
+      "type": "Node",
+      "isCommunalPollEnabled": false,
+      "coldWaterSummerTemp": 0,
+      "coldWaterWinterTemp": 0,
+      "licenseCount": 1,
+      "isHeatingSeason": false,
+      "currentSeason": "Summer",
+      "geoLocation": null,
+      "norms": null,
+      "attributes": null,
+      "powerSources": null,
+      "holidaySettings": null,
+      "useHeatSourceParameters": false,
+      "contractTemperatureChartId": 245,
+      "temperatureComplianceAnalysisType": "T_outdoor",
+      "stability": null
+    }
+  ],
+  "measurePoints": null,
+  "servicemen": null,
+  "serviceCompanies": null,
+  "customers": null,
+  "suppliers": null,
+  "nodeSuppliers": null,
+  "signaling": null,
+  "territories": [
+    {
+      "id": 1,
+      "parentId": null,
+      "name": "Хабаровск",
+      "timeZoneOffset": 10,
+      "copyMeasurePointId": null,
+      "monthStdTemperature": null,
+      "minOutdoorTemp": null
+    },
+    {
+      "id": 3,
+      "parentId": null,
+      "name": "Москва",
+      "timeZoneOffset": 3,
+      "copyMeasurePointId": null,
+      "monthStdTemperature": null,
+      "minOutdoorTemp": null
+    }
+  ]
+}

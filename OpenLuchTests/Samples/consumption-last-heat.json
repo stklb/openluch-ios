@@ -1,0 +1,171 @@
+{
+  "dataType": "Current",
+  "dateTime": "2026-10-03T00:31:23",
+  "rawDateTime": null,
+  "intervalSeconds": 0,
+  "attributes": [],
+  "values": [
+    {
+      "dataParameterId": 1,
+      "dataParameter": "T_in",
+      "value": 24.979827880859375,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 2,
+      "dataParameter": "T_out",
+      "value": 24.580078125,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 3,
+      "dataParameter": "T_cw",
+      "value": 5,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 4,
+      "dataParameter": "T_outdoor",
+      "value": -60,
+      "isBad": true,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 5,
+      "dataParameter": "M_in",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 6,
+      "dataParameter": "M_out",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 7,
+      "dataParameter": "V_in",
+      "value": 0,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 8,
+      "dataParameter": "V_out",
+      "value": 0,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 9,
+      "dataParameter": "Q_in",
+      "value": 0,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 10,
+      "dataParameter": "Q_out",
+      "value": 0,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 11,
+      "dataParameter": "Q_delta",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 12,
+      "dataParameter": "P_in",
+      "value": 1.5919651985168457,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 13,
+      "dataParameter": "P_out",
+      "value": 1.638784408569336,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 14,
+      "dataParameter": "P_cw",
+      "value": 6.788893699645996,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 47,
+      "dataParameter": "T_delta",
+      "value": 0.399749755859375,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 48,
+      "dataParameter": "P_delta",
+      "value": -0.046819210052490234,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 49,
+      "dataParameter": "V_delta",
+      "value": 0,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 50,
+      "dataParameter": "M_delta",
+      "value": 0,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    }
+  ]
+}

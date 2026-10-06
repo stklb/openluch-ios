@@ -1,0 +1,51 @@
+# Сборка неподписанного OpenLuch-<версия>.ipa на серверах GitHub (macOS) — Mac для этого не нужен.
+#
+# Запуск:
+#   • вручную: вкладка Actions → «Сборка .ipa» → Run workflow; готовый .ipa — в разделе Artifacts запуска.
+#     Работает и в форке: сделайте Fork, откройте Actions в своей копии и запустите там;
+#   • при отправке тега вида v0.2: дополнительно создаётся черновик релиза с .ipa
+#     (опубликовать его вручную на странице Releases после проверки).
+#
+# Подпись не нужна: AltStore и Sideloadly подписывают приложение Apple ID того, кто его ставит.
+
+name: Сборка .ipa
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write  # нужно только для создания черновика релиза
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v7
+        with:
+          # Вся история: номер сборки = число коммитов (tools/set-build-number.sh).
+          fetch-depth: 0
+
+      - name: Собрать .ipa
+        run: tools/build-ipa.sh
+
+      - name: Сохранить .ipa в Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: OpenLuch-ipa
+          path: build/OpenLuch-*.ipa
+          if-no-files-found: error
+
+      - name: Черновик релиза
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/OpenLuch-*.ipa \
+            --draft \
+            --title "OpenLuch ${GITHUB_REF_NAME#v}" \
+            --notes "Установка: скачайте .ipa ниже и поставьте через AltStore или Sideloadly со своим Apple ID."

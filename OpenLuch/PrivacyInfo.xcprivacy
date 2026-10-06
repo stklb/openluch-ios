@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+	Privacy manifest — обязательная для App Store «декларация конфиденциальности».
+	Трекинга нет, разработчик никаких данных не собирает (данные идут только между устройством
+	и сервером пользователя). Перечислены «API с обязательной причиной», которыми пользуется приложение:
+	- UserDefaults (CA92.1): настройки и мелкие сведения только самого приложения
+	  (SettingsStore, CacheFreshness, BackgroundRefresh, @AppStorage);
+	- даты изменения файлов (C617.1): дата изменения файлов кэша внутри контейнера приложения —
+	  когда список обновлялся в последний раз (CacheStore).
+	Если в коде появится новое такое API (место на диске, время с загрузки системы и т.п.) — дописать сюда.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

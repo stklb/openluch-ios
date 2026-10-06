@@ -1,0 +1,7 @@
+{
+  "oneTimePasswordRequired": false,
+  "nextOneTimePasswordRequestAt": null,
+  "token": "eyJ...ЗАМЕНЕНО...",
+  "tokenExpiration": "2027-10-09T21:38:19.3510055Z",
+  "expiresInSeconds": 32140799
+}

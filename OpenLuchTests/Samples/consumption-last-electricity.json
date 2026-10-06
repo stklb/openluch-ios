@@ -1,0 +1,297 @@
+{
+  "dataType": "Current",
+  "dateTime": "2026-10-03T02:36:13",
+  "rawDateTime": null,
+  "intervalSeconds": 0,
+  "attributes": [],
+  "values": [
+    {
+      "dataParameterId": 57,
+      "dataParameter": "S",
+      "value": 2.601318508386612,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 58,
+      "dataParameter": "SA",
+      "value": 0.9594842791557312,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 59,
+      "dataParameter": "SB",
+      "value": 0.4278551135212183,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 60,
+      "dataParameter": "SC",
+      "value": 1.2291252985596657,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 61,
+      "dataParameter": "ElectricCurrent_P",
+      "value": 2.5710001587867737,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 62,
+      "dataParameter": "Pp",
+      "value": 2.573999986052513,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 64,
+      "dataParameter": "PA",
+      "value": 0.9569999948143959,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 65,
+      "dataParameter": "PB",
+      "value": 0.3959999978542328,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 66,
+      "dataParameter": "PC",
+      "value": 1.218000054359436,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 67,
+      "dataParameter": "Q",
+      "value": -0.3959999978542328,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 68,
+      "dataParameter": "Qp",
+      "value": 0,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 70,
+      "dataParameter": "QA",
+      "value": -0.06900000153109431,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 71,
+      "dataParameter": "QB",
+      "value": -0.16200000420212746,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 72,
+      "dataParameter": "QC",
+      "value": -0.16499999910593033,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 73,
+      "dataParameter": "U",
+      "value": 231.468994140625,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 74,
+      "dataParameter": "UA",
+      "value": 231.87899780273438,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 75,
+      "dataParameter": "UB",
+      "value": 231.78500366210938,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 76,
+      "dataParameter": "UC",
+      "value": 230.7429962158203,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 77,
+      "dataParameter": "I",
+      "value": 3.9259998500347137,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 78,
+      "dataParameter": "IA",
+      "value": 4.169999957084656,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 79,
+      "dataParameter": "IB",
+      "value": 1.9170000404119492,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 80,
+      "dataParameter": "IC",
+      "value": 5.69100022315979,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 81,
+      "dataParameter": "PhiUAB",
+      "value": 119.5,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 82,
+      "dataParameter": "PhiUAC",
+      "value": 239.5,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 83,
+      "dataParameter": "PhiUBC",
+      "value": 120,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 84,
+      "dataParameter": "PhiUIA",
+      "value": -4.300000190734863,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 85,
+      "dataParameter": "PhiUIB",
+      "value": -22.299999237060547,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 86,
+      "dataParameter": "PhiUIC",
+      "value": -7.800000190734863,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 87,
+      "dataParameter": "Frequency",
+      "value": 50.0099983215332,
+      "isBad": false,
+      "isCalc": false,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 89,
+      "dataParameter": "CosPhiA",
+      "value": 0.9971851110458374,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 90,
+      "dataParameter": "CosPhiB",
+      "value": 0.9252097010612488,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    },
+    {
+      "dataParameterId": 91,
+      "dataParameter": "CosPhiC",
+      "value": 0.99074786901474,
+      "isBad": false,
+      "isCalc": true,
+      "isInterpolated": false,
+      "isReset": false
+    }
+  ]
+}
