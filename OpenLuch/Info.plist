@@ -4,7 +4,7 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>ru.stklb.openluch.refresh</string>
+		<string>ru.stklb.luch.refresh</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

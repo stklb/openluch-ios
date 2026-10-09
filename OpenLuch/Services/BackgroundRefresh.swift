@@ -22,12 +22,12 @@ import Foundation
 // (видно в «Настройках») и, если включено, приходит уведомлением (BackgroundRefreshNotifications).
 //
 // Настройки проекта для этого (OpenLuch/Info.plist):
-//   UIBackgroundModes = [fetch] и BGTaskSchedulerPermittedIdentifiers = [ru.stklb.openluch.refresh].
+//   UIBackgroundModes = [fetch] и BGTaskSchedulerPermittedIdentifiers = [ru.stklb.luch.refresh].
 // Сама задача подключена в OpenLuchApp (.backgroundTask(.appRefresh(...))).
 nonisolated enum BackgroundRefresh {
 
     /// Имя фоновой задачи — то же, что в Info.plist (BGTaskSchedulerPermittedIdentifiers).
-    static let taskIdentifier = "ru.stklb.openluch.refresh"
+    static let taskIdentifier = "ru.stklb.luch.refresh"
 
     // Ключи в UserDefaults: когда и чем закончилось последнее фоновое обновление (для «Настроек»).
     private static let lastRunKey = "background.lastRunAt"

@@ -149,7 +149,7 @@ final class DemoServerTests: XCTestCase {
     func testBackgroundRefreshSavesAllLists() async throws {
         _ = try makeClient()
         let id = UUID().uuidString
-        let keychain = KeychainTokenStore(service: "ru.stklb.openluch.tests.\(id)")
+        let keychain = KeychainTokenStore(service: "ru.stklb.luch.tests.\(id)")
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "BackgroundRefreshTests-\(id)"))
         let cacheDirectory = FileManager.default.temporaryDirectory.appending(path: "Background-\(id)")
         defer {
@@ -237,7 +237,7 @@ final class DemoServerDataStoreTests: XCTestCase {
             throw XCTSkip("Тесты с сервером my.lers.ru выключены (нужна переменная LERS_DEMO_TESTS=1)")
         }
         let id = UUID().uuidString
-        let keychain = KeychainTokenStore(service: "ru.stklb.openluch.tests.\(id)")
+        let keychain = KeychainTokenStore(service: "ru.stklb.luch.tests.\(id)")
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "DemoServerDataStoreTests-\(id)"))
         let cacheDirectory = FileManager.default.temporaryDirectory.appending(path: "DemoDataStore-\(id)")
         defer {
@@ -277,7 +277,7 @@ final class DemoServerDataStoreTests: XCTestCase {
             throw XCTSkip("Тесты с сервером my.lers.ru выключены (нужна переменная LERS_DEMO_TESTS=1)")
         }
         let id = UUID().uuidString
-        let keychain = KeychainTokenStore(service: "ru.stklb.openluch.tests.\(id)")
+        let keychain = KeychainTokenStore(service: "ru.stklb.luch.tests.\(id)")
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "DemoServerDataStoreTests-\(id)"))
         let cacheDirectory = FileManager.default.temporaryDirectory.appending(path: "DemoDataStore-\(id)")
         defer {
@@ -319,7 +319,7 @@ final class DemoServerLoginScreenTests: XCTestCase {
             throw XCTSkip("Тесты с сервером my.lers.ru выключены (нужна переменная LERS_DEMO_TESTS=1)")
         }
         let id = UUID().uuidString
-        let keychain = KeychainTokenStore(service: "ru.stklb.openluch.tests.\(id)")
+        let keychain = KeychainTokenStore(service: "ru.stklb.luch.tests.\(id)")
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "DemoServerLoginScreenTests-\(id)"))
         let cacheDirectory = FileManager.default.temporaryDirectory.appending(path: "DemoLogin-\(id)")
         defer {

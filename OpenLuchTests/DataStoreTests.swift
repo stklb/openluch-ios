@@ -20,7 +20,7 @@ final class DataStoreTests: XCTestCase {
     private func makeSession() throws -> AppSession {
         let id = UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "DataStoreTests-\(id)"))
-        return AppSession(tokenStore: KeychainTokenStore(service: "ru.stklb.openluch.tests.\(id)"),
+        return AppSession(tokenStore: KeychainTokenStore(service: "ru.stklb.luch.tests.\(id)"),
                           settingsStore: SettingsStore(defaults: defaults),
                           cacheStore: CacheStore(directory: cacheDirectory))
     }

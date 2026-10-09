@@ -8,7 +8,7 @@ final class LoginViewModelTests: XCTestCase {
     private func makeModel() throws -> LoginViewModel {
         let id = UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "LoginViewModelTests-\(id)"))
-        let session = AppSession(tokenStore: KeychainTokenStore(service: "ru.stklb.openluch.tests.\(id)"),
+        let session = AppSession(tokenStore: KeychainTokenStore(service: "ru.stklb.luch.tests.\(id)"),
                                  settingsStore: SettingsStore(defaults: defaults),
                                  cacheStore: CacheStore(directory: FileManager.default.temporaryDirectory.appending(path: "LoginVM-\(id)")))
         return LoginViewModel(session: session)

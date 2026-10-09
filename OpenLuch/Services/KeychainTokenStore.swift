@@ -14,7 +14,7 @@ nonisolated struct KeychainTokenStore: Sendable {
     let service: String
     private let account = "token"
 
-    init(service: String = "ru.stklb.openluch.token") {
+    init(service: String = "ru.stklb.luch.token") {
         self.service = service
     }
 

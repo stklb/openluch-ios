@@ -56,7 +56,7 @@ nonisolated final class NetworkMonitor: @unchecked Sendable {
         monitor.pathUpdateHandler = { [weak self] path in
             self?.update(isConnected: path.status == .satisfied, kind: NetworkMonitor.connectionKind(of: path))
         }
-        monitor.start(queue: DispatchQueue(label: "ru.stklb.openluch.network-monitor"))
+        monitor.start(queue: DispatchQueue(label: "ru.stklb.luch.network-monitor"))
     }
 
     /// Определяет тип подключения по сведениям системы о текущем «пути» в сеть.
