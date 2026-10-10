@@ -86,7 +86,7 @@ final class EquipmentTests: XCTestCase {
     func testArshinLink() throws {
         let equipment = Equipment.makeList(from: try loadSample().response)
 
-        // Поверка синхронизирована с «Аршин» — есть номер записи и ссылка на неё.
+        // Поверка синхронизирована с «АРШИН» — есть номер записи и ссылка на неё.
         let synced = try XCTUnwrap(equipment.first { $0.id == 905 }?.details)
         XCTAssertEqual(synced.calibrationResultId, "1-355640981")
         XCTAssertEqual(synced.arshinURL?.absoluteString, "https://fgis.gost.ru/fundmetrology/cm/results/1-355640981")

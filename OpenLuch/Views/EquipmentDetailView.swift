@@ -147,12 +147,12 @@ struct EquipmentDetailView: View {
                     LabeledContent("Номер пломбы", value: sealNumber)
                 }
                 if let syncDay = details.calibrationSyncDay {
-                    LabeledContent("Сверено с ФГИС «Аршин»", value: TextFormatting.calendarDay(syncDay))
+                    LabeledContent("Сверено с ФГИС «АРШИН»", value: TextFormatting.calendarDay(syncDay))
                 }
                 // Ссылка на запись о поверке — открывается в Safari (стандартный Link).
                 if let arshinURL = details.arshinURL {
                     Link(destination: arshinURL) {
-                        Label("Запись о поверке в ФГИС «Аршин»", systemImage: "arrow.up.forward.square")
+                        Label("Запись о поверке в ФГИС «АРШИН»", systemImage: "arrow.up.forward.square")
                     }
                 }
             }

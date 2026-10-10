@@ -272,12 +272,12 @@ nonisolated struct EquipmentDetails: Codable, Hashable, Sendable {
     let calibrationOrganization: String?
     /// Результат последней поверки: 1 — пригоден, 0 — непригоден, nil — неизвестно.
     let calibrationResult: Int?
-    /// Номер в реестре средств измерений (из ФГИС «Аршин»).
+    /// Номер в реестре средств измерений (из ФГИС «АРШИН»).
     let calibrationRegisterNumber: String?
-    /// Когда сведения о поверке последний раз сверялись с ФГИС «Аршин» — день «гггг-мм-дд».
+    /// Когда сведения о поверке последний раз сверялись с ФГИС «АРШИН» — день «гггг-мм-дд».
     let calibrationSyncDay: String?
-    /// Номер записи о поверке во ФГИС «Аршин», например «1-355640981». Сервер ЛЭРС заполняет его,
-    /// только если сведения о поверке были синхронизированы с «Аршин». nil — нет (или кэш прошлой версии).
+    /// Номер записи о поверке во ФГИС «АРШИН», например «1-355640981». Сервер ЛЭРС заполняет его,
+    /// только если сведения о поверке были синхронизированы с «АРШИН». nil — нет (или кэш прошлой версии).
     var calibrationResultId: String? = nil
     /// Сетевой адрес прибора (для опроса).
     let networkAddress: String?
@@ -293,8 +293,8 @@ nonisolated struct EquipmentDetails: Codable, Hashable, Sendable {
     /// Как прибор опрашивается: каналы связи и модемы.
     let connections: [EquipmentConnection]
 
-    /// Страница записи о поверке на сайте ФГИС «Аршин» — или nil, если номера записи нет.
-    /// Адрес собирается из номера записи (calibrationResultId) так же, как его открывает сам «Аршин»:
+    /// Страница записи о поверке на сайте ФГИС «АРШИН» — или nil, если номера записи нет.
+    /// Адрес собирается из номера записи (calibrationResultId) так же, как его открывает сам «АРШИН»:
     /// https://fgis.gost.ru/fundmetrology/cm/results/1-355640981
     var arshinURL: URL? {
         guard let calibrationResultId else {
@@ -407,7 +407,7 @@ nonisolated struct EquipmentItemResponse: Decodable, Sendable {
     let calibrationOrganization: String?
     let calibrationResult: Int?
     let calibrationStateRegisterNumber: String?
-    /// Номер записи о поверке во ФГИС «Аршин» (есть, если была синхронизация с «Аршин»).
+    /// Номер записи о поверке во ФГИС «АРШИН» (есть, если была синхронизация с «АРШИН»).
     let calibrationResultId: String?
     let networkAddress: String?
     let comment: String?
