@@ -76,30 +76,23 @@
 приглашение: установите приложение [TestFlight](https://apps.apple.com/app/testflight/id899247664) из App Store и
 примите приглашение. Новые версии будут приходить через TestFlight автоматически.
 
-### Сборка в Xcode
-
-Нужен Mac с Xcode 26 или новее.
-
-1. Склонируйте репозиторий и откройте `OpenLuch.xcodeproj`.
-2. Цель **OpenLuch** → **Signing & Capabilities**: в **Team** выберите свой Apple ID, в **Bundle Identifier** укажите
-   свой уникальный идентификатор (например, `com.yourname.openluch`).
-3. Подключите iPhone, выберите его вверху окна Xcode и нажмите ▶︎ (Run).
-
 ### Сборка .ipa без Mac
 
 `.ipa` собирается в GitHub Actions: сделайте Fork репозитория, в своей копии откройте **Actions** → **Сборка .ipa** →
-**Run workflow**. Готовый файл — в разделе **Artifacts** запуска. Локально на Mac то же делает `tools/build-ipa.sh`.
+**Run workflow**. Готовый файл — в разделе **Artifacts** запуска.
 
 ### Что нужно
 
-- iPhone с iOS 18 или новее (также запускается на iPad и на Mac с Apple Silicon).
+- iPhone с iOS 18 или новее — это iPhone XS, XR и более новые модели (также запускается на iPad и на Mac с Apple Silicon).
 - Сервер ЛЭРС УЧЁТ с доступом к REST API по HTTPS или HTTP и учётная запись пользователя.
 - Попробовать без своего сервера можно на демо-сервере: кнопка «Демо-доступ» на экране входа.
 
-## Поддержать разработку
+## ❤️ Поддержать разработку
 
 Приложение бесплатное. Чтобы оно было в App Store и TestFlight, нужна платная подписка Apple Developer — её можно
-помочь оплатить через [CloudTips](https://pay.cloudtips.ru/p/6c9eaa2a). Спасибо!
+помочь оплатить через CloudTips. Спасибо!
+
+<a href="https://pay.cloudtips.ru/p/6c9eaa2a"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B0%D1%82%D1%8C-CloudTips-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Поддержать через CloudTips"></a>
 
 ## Как сделан
 
