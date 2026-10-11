@@ -9,8 +9,8 @@
 [![Release](https://img.shields.io/github/v/release/stklb/openluch-ios?label=release&color=blue)](https://github.com/stklb/openluch-ios/releases)
 ![iOS 18+](https://img.shields.io/badge/iOS-18%2B-black?logo=apple)
 ![Swift 5](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)
-![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0A84FF?logo=swift&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+[![Поддержать через CloudTips](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B0%D1%82%D1%8C-CloudTips-ea4aaa?logo=githubsponsors&logoColor=white)](https://pay.cloudtips.ru/p/6c9eaa2a)
 
 </div>
 
