@@ -69,13 +69,12 @@
 
 В App Store приложения пока нет.
 
-### AltStore или Sideloadly
+### TestFlight
 
-1. Скачайте `OpenLuch-<версия>.ipa` из [Releases](https://github.com/stklb/openluch-ios/releases).
-2. Установите через [AltStore](https://altstore.io) или [Sideloadly](https://sideloadly.io) со своим Apple ID.
-
-С бесплатным Apple ID приложение нужно переподписывать раз в 7 дней. AltStore делает это сам, если рядом компьютер с
-AltServer.
+Вы можете участвовать в тестировании. Пришлите на [support@stklb.ru](mailto:support@stklb.ru) свой Apple ID — адрес
+электронной почты, к которому он привязан. Мы добавим вас в группу внутренних тестеров в TestFlight. Вам придёт
+приглашение: установите приложение [TestFlight](https://apps.apple.com/app/testflight/id899247664) из App Store и
+примите приглашение. Новые версии будут приходить через TestFlight автоматически.
 
 ### Сборка в Xcode
 
@@ -96,6 +95,11 @@ AltServer.
 - iPhone с iOS 18 или новее (также запускается на iPad и на Mac с Apple Silicon).
 - Сервер ЛЭРС УЧЁТ с доступом к REST API по HTTPS или HTTP и учётная запись пользователя.
 - Попробовать без своего сервера можно на демо-сервере: кнопка «Демо-доступ» на экране входа.
+
+## Поддержать разработку
+
+Приложение бесплатное. Чтобы оно было в App Store и TestFlight, нужна платная подписка Apple Developer — её можно
+помочь оплатить через [CloudTips](https://pay.cloudtips.ru/p/6c9eaa2a). Спасибо!
 
 ## Как сделан
 
