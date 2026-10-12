@@ -442,6 +442,31 @@ extension View {
     }
 }
 
+/// Оранжевая строка о проблеме со связью: «Нет интернета», «Обнаружены белые списки…»
+/// или «Интернет есть, сервер ЛЭРС не отвечает» (см. ConnectionProblemDetector).
+/// Показывается вместо обычной ошибки связи. Если проблемы нет — ничего не показывает.
+struct ConnectionProblemNotice: View {
+    /// false — не показывать «сервер не отвечает» (на экране входа своя, более полезная ошибка:
+    /// «Проверьте адрес и порт»).
+    var showsServerUnreachable = true
+
+    var body: some View {
+        if let problem = ConnectionProblemNotice.visibleProblem(showsServerUnreachable: showsServerUnreachable) {
+            Label(problem.message, systemImage: problem.systemImage)
+                .foregroundStyle(.orange)
+        }
+    }
+
+    /// Какую проблему показать (nil — никакую).
+    static func visibleProblem(showsServerUnreachable: Bool = true) -> ConnectionProblem? {
+        let problem = ConnectionProblemDetector.shared.problem
+        if problem == .serverUnreachable && !showsServerUnreachable {
+            return nil
+        }
+        return problem
+    }
+}
+
 /// Строка над списком: ход загрузки или ошибка обновления (итог списка — в панели сверху, см. ListTitle).
 /// Ошибка не скрывает данные — она показывается здесь, над старым списком.
 /// Если показывать нечего — строки нет совсем (не занимает места).
@@ -452,9 +477,11 @@ struct ListStatusHeader: View {
 
     var body: some View {
         let state = dataStore.state(for: kind)
+        let hasConnectionProblem = ConnectionProblemDetector.shared.problem != nil
 
-        if state != .idle {
+        if state != .idle || hasConnectionProblem {
             VStack(alignment: .leading, spacing: 6) {
+                ConnectionProblemNotice()
                 switch state {
                 case .idle:
                     EmptyView()
@@ -470,8 +497,11 @@ struct ListStatusHeader: View {
                         .buttonStyle(.borderless)
                     }
                 case .failed(let message):
-                    Label("Не удалось обновить: \(message)", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                    // Если причина известна, она уже написана строкой выше — не повторяем.
+                    if !hasConnectionProblem {
+                        Label("Не удалось обновить: \(message)", systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
                 }
             }
             .font(.footnote)
@@ -517,9 +547,11 @@ struct EmptyListView: View {
 
         case .failed(let message):
             ContentUnavailableView {
-                Label("Не удалось загрузить", systemImage: "wifi.exclamationmark")
+                let problem = ConnectionProblemDetector.shared.problem
+                Label("Не удалось загрузить", systemImage: problem?.systemImage ?? "wifi.exclamationmark")
             } description: {
-                Text(message)
+                // Если причина известна (нет интернета, белые списки…) — пишем её вместо общей ошибки.
+                Text(ConnectionProblemDetector.shared.problem?.message ?? message)
             } actions: {
                 Button("Повторить") {
                     dataStore.refresh(kind)

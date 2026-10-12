@@ -200,13 +200,22 @@ struct LoginView: View {
                 statusDot(.green)
             }
         case .unavailable(let message):
-            Label {
-                Text(message)
-                    // Разрешаем тексту переноситься на сколько угодно строк, а не обрезаться «…».
-                    .fixedSize(horizontal: false, vertical: true)
-            } icon: {
-                statusDot(.red)
+            if ConnectionProblemNotice.visibleProblem(showsServerUnreachable: false) != nil {
+                // Причина известна (нет интернета, белые списки) — говорим о ней вместо общей ошибки.
+                ConnectionProblemNotice(showsServerUnreachable: false)
+            } else {
+                Label {
+                    Text(message)
+                        // Разрешаем тексту переноситься на сколько угодно строк, а не обрезаться «…».
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    statusDot(.red)
+                }
             }
+        }
+        // Проверка сервера ещё ждёт ответа, но причина молчания уже понятна.
+        if model.serverCheck == .checking {
+            ConnectionProblemNotice(showsServerUnreachable: false)
         }
     }
 
@@ -346,7 +355,10 @@ struct LoginView: View {
     @ViewBuilder
     private var buttonFooter: some View {
         if model.isLoggingIn {
-            EmptyView()
+            // Вход ещё ждёт ответа, но причина молчания сервера уже понятна.
+            ConnectionProblemNotice(showsServerUnreachable: false)
+        } else if model.errorMessage != nil && ConnectionProblemNotice.visibleProblem(showsServerUnreachable: false) != nil {
+            ConnectionProblemNotice(showsServerUnreachable: false)
         } else if let errorMessage = model.errorMessage {
             Label(errorMessage, systemImage: "xmark.octagon.fill")
                 .foregroundStyle(.red)

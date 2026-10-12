@@ -74,6 +74,9 @@ nonisolated final class NetworkMonitor: @unchecked Sendable {
 
     private func update(isConnected: Bool, kind: ConnectionKind) {
         lock.lock()
+        // Сеть сменилась (появилась, пропала, Wi-Fi ↔ сотовая) — прежние выводы
+        // ConnectionProblemDetector больше не верны. Первое сообщение системы — не смена.
+        let didChange = isKnown && (kind != self.kind || isConnected != (connectedSince != nil))
         self.kind = kind
         isKnown = true
         if isConnected {
@@ -85,6 +88,12 @@ nonisolated final class NetworkMonitor: @unchecked Sendable {
             connectedSince = nil
         }
         lock.unlock()
+
+        if didChange {
+            Task { @MainActor in
+                ConnectionProblemDetector.shared.networkDidChange()
+            }
+        }
     }
 
     /// Момент, с которого сеть есть без перерыва, — или nil, если сети нет (или пока неизвестно).

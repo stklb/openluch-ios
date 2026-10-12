@@ -526,13 +526,22 @@ nonisolated final class APIClient: Sendable {
                           onProgress: @escaping @Sendable (DownloadProgress) -> Void) async throws -> Data {
         let observer = NetworkTaskObserver()
         let unreachableDelay = serverUnreachableDelay
+        let startedAt = Date()
 
         // Фоновая задача-«наблюдатель» за прогрессом. Работает, пока её не остановят (cancel).
         // Заодно следит, не пора ли сдаться: сеть у телефона есть, а сервер так и не отвечает.
         let progressReporter = Task {
+            var isSilenceReported = false
             while !Task.isCancelled {
                 onProgress(observer.currentProgress())
                 observer.giveUpIfServerUnreachable(after: unreachableDelay)
+                // Сервер молчит 2 секунды — пусть ConnectionProblemDetector выяснит почему.
+                // Сам запрос при этом продолжает ждать по своим правилам.
+                if !isSilenceReported && !observer.hasServerAnswered
+                    && Date().timeIntervalSince(startedAt) >= ConnectionProblemDetector.serverSilenceDelay {
+                    isSilenceReported = true
+                    APIClient.reportServerSilence()
+                }
                 try? await Task.sleep(for: .milliseconds(250))
             }
         }
@@ -545,10 +554,20 @@ nonisolated final class APIClient: Sendable {
         } catch {
             progressReporter.cancel()
             // Запрос прервал наш «наблюдатель», потому что сервер недоступен (а не пользователь).
-            if observer.didGiveUp {
-                throw APIError.serverUnreachable
+            let apiError = observer.didGiveUp ? APIError.serverUnreachable : APIError.from(error)
+            // Сообщаем ConnectionProblemDetector, чтобы он выяснил причину.
+            switch apiError {
+            case .serverUnreachable, .timedOut, .noConnection:
+                // Сервер так и не ответил — если интернет есть, покажем «сервер не отвечает».
+                APIClient.reportServerFailure()
+            case .connectionLost, .secureConnectionFailed, .other:
+                // Сервер мог и отвечать (обрыв посреди загрузки, сертификат) — только проверяем,
+                // нет ли проблем с интернетом, но «сервер не отвечает» не утверждаем.
+                APIClient.reportServerSilence()
+            default:
+                break
             }
-            throw APIError.from(error)
+            throw apiError
         }
         progressReporter.cancel()
         onProgress(observer.currentProgress())
@@ -556,11 +575,29 @@ nonisolated final class APIClient: Sendable {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
         }
+        // Сервер ответил (неважно, каким кодом) — строка о проблеме со связью больше не нужна.
+        Task { @MainActor in
+            ConnectionProblemDetector.shared.serverDidRespond()
+        }
         // Проверяем код ответа (401, 422, 500…). Тело уже есть — в нём может быть текст ошибки.
         if let error = APIError.fromHTTPStatus(httpResponse.statusCode, body: data) {
             throw error
         }
         return data
+    }
+
+    /// Сообщить ConnectionProblemDetector, что сервер молчит (он работает в главном потоке, а мы — в фоновом).
+    private static func reportServerSilence() {
+        Task { @MainActor in
+            ConnectionProblemDetector.shared.serverIsSilent()
+        }
+    }
+
+    /// Сообщить ConnectionProblemDetector, что запрос к серверу завершился ошибкой связи.
+    private static func reportServerFailure() {
+        Task { @MainActor in
+            ConnectionProblemDetector.shared.serverRequestFailed()
+        }
     }
 }
 
@@ -591,6 +628,17 @@ private nonisolated final class NetworkTaskObserver: NSObject, URLSessionTaskDel
         isWaitingForNetwork = true
         waitingStartedAt = Date()
         lock.unlock()
+    }
+
+    /// true — сервер уже начал отвечать (пришли заголовки или первые байты).
+    var hasServerAnswered: Bool {
+        lock.lock()
+        let task = self.task
+        lock.unlock()
+        guard let task else {
+            return false
+        }
+        return task.response != nil || task.countOfBytesReceived > 0
     }
 
     /// true — запрос прерван нами, потому что сервер недоступен.

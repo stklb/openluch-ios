@@ -57,9 +57,10 @@ struct PointReadingsSections: View {
                         Text(model.isWaitingForNetwork ? "Нет сети, ждём подключения…" : "Загрузка данных…")
                             .foregroundStyle(.secondary)
                     }
+                    // Запрос ещё ждёт, но уже ясно, почему сервер молчит.
+                    ConnectionProblemNotice()
                 } else if let errorMessage = model.errorMessage {
-                    Label("Не удалось загрузить: \(errorMessage)", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                    errorLabel("Не удалось загрузить: \(errorMessage)")
                     retryButton
                 }
             }
@@ -82,18 +83,28 @@ struct PointReadingsSections: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                ConnectionProblemNotice()
             } else {
                 // Обновление не удалось (или его отменили) — данные так и остались старыми.
                 VStack(alignment: .leading, spacing: 2) {
-                    Label(model.errorMessage.map { "Не удалось обновить: \($0)" } ?? "Данные не обновлены",
-                          systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                    errorLabel(model.errorMessage.map { "Не удалось обновить: \($0)" } ?? "Данные не обновлены")
                     Text("Показаны данные от \(TextFormatting.updatedAt(savedAt))")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
                 retryButton
             }
+        }
+    }
+
+    /// Оранжевая строка ошибки — или, если причина известна (нет интернета, белые списки…), она вместо ошибки.
+    @ViewBuilder
+    private func errorLabel(_ text: String) -> some View {
+        if ConnectionProblemDetector.shared.problem != nil {
+            ConnectionProblemNotice()
+        } else {
+            Label(text, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
         }
     }
 
