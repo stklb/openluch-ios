@@ -1,0 +1,412 @@
+{
+ "pressureType": "Absolute",
+ "monthConsumption": [],
+ "dayConsumption": [
+  {
+   "resourceKind": "Water",
+   "isEmpty": false,
+   "dateTime": "2026-10-01T00:00:00",
+   "rawDateTime": null,
+   "intervalSeconds": 0,
+   "attributes": [
+    "CalculatedByDeviceTotals"
+   ],
+   "values": [
+    {
+     "dataParameterId": 1,
+     "dataParameter": "T_in",
+     "value": 25.066410064697266,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 2,
+     "dataParameter": "T_out",
+     "value": 21.59490203857422,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 3,
+     "dataParameter": "T_cw",
+     "value": 4.999992370605469,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 4,
+     "dataParameter": "T_outdoor",
+     "value": 9.220026016235352,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 12,
+     "dataParameter": "P_in",
+     "value": 4.633537292480469,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 13,
+     "dataParameter": "P_out",
+     "value": 4.695207595825195,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 5,
+     "dataParameter": "M_in",
+     "value": 0.00634765625,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 6,
+     "dataParameter": "M_out",
+     "value": -0.1044921875,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 50,
+     "dataParameter": "M_delta",
+     "value": 0.11083984375,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 7,
+     "dataParameter": "V_in",
+     "value": 0.00634765625,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 8,
+     "dataParameter": "V_out",
+     "value": -0.1044921875,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 49,
+     "dataParameter": "V_delta",
+     "value": 0.11083984375,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 9,
+     "dataParameter": "Q_in",
+     "value": 0.00012737471843138337,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 10,
+     "dataParameter": "Q_out",
+     "value": -0.0017036799108609557,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 11,
+     "dataParameter": "Q_delta",
+     "value": 0.0018310546875,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 15,
+     "dataParameter": "NormalOperationDuration",
+     "value": 24,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 92,
+     "dataParameter": "M_balance",
+     "value": 106.0747663551402,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 14,
+     "dataParameter": "P_cw",
+     "value": 7.792045593261719,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 47,
+     "dataParameter": "T_delta",
+     "value": 3.471508026123047,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 48,
+     "dataParameter": "P_delta",
+     "value": -0.06167030334472656,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    }
+   ]
+  },
+  {
+   "resourceKind": "Water",
+   "isEmpty": false,
+   "dateTime": "2026-10-02T00:00:00",
+   "rawDateTime": null,
+   "intervalSeconds": 0,
+   "attributes": [
+    "IncompleteData",
+    "Calculated"
+   ],
+   "values": [
+    {
+     "dataParameterId": 1,
+     "dataParameter": "T_in",
+     "value": 25.056434631347656,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 2,
+     "dataParameter": "T_out",
+     "value": 24.57697296142578,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 3,
+     "dataParameter": "T_cw",
+     "value": 5,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 4,
+     "dataParameter": "T_outdoor",
+     "value": 8.751161575317383,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 12,
+     "dataParameter": "P_in",
+     "value": 3.5165231227874756,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 13,
+     "dataParameter": "P_out",
+     "value": 3.5666394233703613,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 5,
+     "dataParameter": "M_in",
+     "value": 0.0087890625,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 6,
+     "dataParameter": "M_out",
+     "value": 0,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 50,
+     "dataParameter": "M_delta",
+     "value": 0.0087890625,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 7,
+     "dataParameter": "V_in",
+     "value": 0.00927734375,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 8,
+     "dataParameter": "V_out",
+     "value": 0,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 49,
+     "dataParameter": "V_delta",
+     "value": 0.00927734375,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 9,
+     "dataParameter": "Q_in",
+     "value": 0.0001068115234375,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 10,
+     "dataParameter": "Q_out",
+     "value": 0,
+     "isBad": false,
+     "isCalc": true,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 11,
+     "dataParameter": "Q_delta",
+     "value": 0.0001068115234375,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 15,
+     "dataParameter": "NormalOperationDuration",
+     "value": 24,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 14,
+     "dataParameter": "P_cw",
+     "value": 7.792793273925781,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 47,
+     "dataParameter": "T_delta",
+     "value": 0.479461669921875,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    },
+    {
+     "dataParameterId": 48,
+     "dataParameter": "P_delta",
+     "value": -0.05011630058288574,
+     "isBad": false,
+     "isCalc": false,
+     "isInterpolated": false,
+     "isReset": false
+    }
+   ]
+  }
+ ],
+ "hourConsumption": [],
+ "intervalConsumption": [],
+ "currentConsumption": [],
+ "dataParametersUnit": [
+  {
+   "dataParameterCategory": "Temperature",
+   "unit": "CelsiusDegree"
+  },
+  {
+   "dataParameterCategory": "Pressure",
+   "unit": "TechnicalAt"
+  },
+  {
+   "dataParameterCategory": "PressureDrop",
+   "unit": "TechnicalAt"
+  },
+  {
+   "dataParameterCategory": "Mass",
+   "unit": "Ton"
+  },
+  {
+   "dataParameterCategory": "Volume",
+   "unit": "CubicMeter"
+  },
+  {
+   "dataParameterCategory": "Heat",
+   "unit": "GigaCalorie"
+  }
+ ],
+ "summary": null
+}

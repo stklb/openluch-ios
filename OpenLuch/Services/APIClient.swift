@@ -290,6 +290,32 @@ nonisolated final class APIClient: Sendable {
         return ServerUnits(unitsByCategory: unitsByCategory)
     }
 
+    /// Архив потребления точки за период: часовые, суточные или месячные записи с `first` по `last`
+    /// включительно (сервер включает оба конца). GET /api/v1/Data/MeasurePoints/{id}/Consumption/{start}/{end}.
+    /// ⚠️ Ответ тяжёлый: до 3 КБ на запись (выбрать параметры в запросе нельзя), поэтому запрашиваем
+    /// порциями по одному экрану графика (см. ArchivePeriod.portionLength и docs/api-notes.md).
+    /// Единицы — системные, как у последних данных (fetchUnits), чтобы числа на графике и в карточке совпадали.
+    @concurrent
+    func fetchConsumptionArchive(pointId: Int, period: ArchivePeriod, first: Date, last: Date, token: String,
+                                 onProgress: @escaping @Sendable (DownloadProgress) -> Void = { _ in })
+    async throws -> ArchivePortion {
+        let start = ArchiveDates.serverString(first)
+        let end = ArchiveDates.serverString(last)
+        let request = makeAuthorizedGETRequest(
+            path: "api/v1/Data/MeasurePoints/\(pointId)/Consumption/\(start)/\(end)",
+            queryItems: [URLQueryItem(name: "dataTypes", value: period.serverDataType),
+                         URLQueryItem(name: "units", value: "SystemUnits")],
+            token: token
+        )
+        let data = try await download(request, onProgress: onProgress)
+        do {
+            let response = try JSONDecoder().decode(ArchiveResponse.self, from: data)
+            return ArchivePortion(records: response.records(for: period), units: response.units)
+        } catch {
+            throw APIError.invalidResponse
+        }
+    }
+
     // MARK: - Датчики точки учёта
 
     /// Датчики точки: GET /api/v1/Core/MeasurePoints/{id}?getSensor=true.

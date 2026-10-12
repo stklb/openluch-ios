@@ -119,20 +119,28 @@ final class ReadingsTests: XCTestCase {
 
     func testFormatting() throws {
         // Тысячи iOS отделяет неразрывным пробелом (\u{00A0}), чтобы число не разрывалось при переносе.
-        XCTAssertEqual(TextFormatting.reading(708429.714).replacingOccurrences(of: "\u{00A0}", with: " "), "708 429,7")
-        // От 10 и больше — один знак после запятой.
+        // От 1000 — без дробной части.
+        XCTAssertEqual(TextFormatting.reading(708429.714).replacingOccurrences(of: "\u{00A0}", with: " "), "708 430")
+        XCTAssertEqual(TextFormatting.reading(120000.4).replacingOccurrences(of: "\u{00A0}", with: " "), "120 000")
+        XCTAssertEqual(TextFormatting.reading(1000), "1\u{00A0}000")
+        // От 10 до 1000 — один знак после запятой.
         XCTAssertEqual(TextFormatting.reading(24.979827880859375), "25,0")
         XCTAssertEqual(TextFormatting.reading(32.507), "32,5")
         XCTAssertEqual(TextFormatting.reading(10), "10,0")
         XCTAssertEqual(TextFormatting.reading(-60), "-60,0")
-        // Меньше 10 — два знака.
+        XCTAssertEqual(TextFormatting.reading(999.9), "999,9")
+        // От 1 до 10 — два знака.
         XCTAssertEqual(TextFormatting.reading(5), "5,00")
         XCTAssertEqual(TextFormatting.reading(3.6187), "3,62")
-        XCTAssertEqual(TextFormatting.reading(0.0412), "0,04")
-        XCTAssertEqual(TextFormatting.reading(0), "0,00")
-        XCTAssertEqual(TextFormatting.reading(-0.4), "-0,40")
-        // 9,996 после округления — уже 10: один знак, а не «10,00».
+        XCTAssertEqual(TextFormatting.reading(1), "1,00")
+        // Меньше 1 — три знака.
+        XCTAssertEqual(TextFormatting.reading(0.0412), "0,041")
+        XCTAssertEqual(TextFormatting.reading(0), "0,000")
+        XCTAssertEqual(TextFormatting.reading(-0.4), "-0,400")
+        // Граница — по уже округлённому числу: 0,9996 → «1,00», 9,996 → «10,0», 999,96 → «1 000».
+        XCTAssertEqual(TextFormatting.reading(0.9996), "1,00")
         XCTAssertEqual(TextFormatting.reading(9.996), "10,0")
+        XCTAssertEqual(TextFormatting.reading(-999.96).replacingOccurrences(of: "\u{00A0}", with: " "), "-1 000")
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!

@@ -4,14 +4,14 @@ import SwiftUI
 // Вверху — самое главное о точке (видно всегда, максимально коротко), под ним переключатель
 // подвкладок (решение владельца 2026-10-03, карточка стала длинной):
 //   • «Данные»  — последние данные и интеграторы (маленькие запросы при открытии карточки,
-//                 см. PointReadingsModel), под ними — PDF-отчёты: «Сформировать отчёт» и сохранённые
-//                 отчёты точки (см. PointReportsModel);
+//                 см. PointReadingsModel), под ними — ссылка «Графики и архив» (PointArchiveView),
+//                 ручной опрос и PDF-отчёты: «Сформировать отчёт» и сохранённые отчёты точки
+//                 (см. PointReportsModel);
 //   • «Датчики» — устройство опроса и датчики по магистралям. Запрос датчиков тяжёлый (~365 КБ),
 //                 поэтому он делается, только когда пользователь открыл эту вкладку (см. PointSensorsModel);
 //   • «Связь»   — канал связи точки и подключения её прибора опроса (из кэша, без запросов).
 // Нештатные ситуации — не подвкладка: если точка в состоянии «Ошибка» или «Предупреждение», строка
 // «Состояние» вверху становится ссылкой (со стрелкой ›) на экран НС (решение владельца 2026-10-04).
-// Позже добавятся «Подключения», «Графики» и т.п.
 struct MeasurePointDetailView: View {
     @Environment(DataStore.self) private var dataStore
     @Environment(AppSession.self) private var session
@@ -42,6 +42,10 @@ struct MeasurePointDetailView: View {
     /// Ручной опрос прибора и задача, которая ждёт его результата (отменяется, когда уходим с карточки).
     @State private var pollModel: PointPollModel?
     @State private var pollTask: Task<Void, Never>?
+    /// Архив потребления для экрана «Графики и архив». Живёт, пока открыта карточка: ушли с карточки —
+    /// архив удаляется из памяти (на телефоне не сохраняется — прибор могут переопросить).
+    /// Сам архив загружается, только когда пользователь открыл экран графиков.
+    @State private var archiveModel: PointArchiveModel?
 
     var body: some View {
         List {
@@ -63,6 +67,14 @@ struct MeasurePointDetailView: View {
             case .data:
                 if let readingsModel {
                     PointReadingsSections(model: readingsModel, selectedParameterIds: point.selectedParamsList)
+                }
+                // Графики — сразу под последними данными: «посмотрел текущие — захотел историю».
+                if let archiveModel {
+                    Section {
+                        NavigationLink(value: PointArchiveRoute(point: point, model: archiveModel)) {
+                            Label("Графики и архив", systemImage: "chart.xyaxis.line")
+                        }
+                    }
                 }
                 // Опрос — только у точек, привязанных к прибору (у расчётных точек опрашивать нечего),
                 // и только если у учётной записи есть право на ручной опрос.
@@ -147,6 +159,9 @@ struct MeasurePointDetailView: View {
             }
             if pollModel == nil {
                 pollModel = PointPollModel(pointId: point.id, session: session)
+            }
+            if archiveModel == nil {
+                archiveModel = PointArchiveModel(pointId: point.id, session: session)
             }
             if reportsModel == nil {
                 // Датчики приходят и вместе со списком отчётов — модель отчётов отдаст их модели датчиков.
@@ -304,6 +319,9 @@ extension View {
             }
             .navigationDestination(for: PointIncidentsRoute.self) { route in
                 PointIncidentsView(pointId: route.pointId)
+            }
+            .navigationDestination(for: PointArchiveRoute.self) { route in
+                PointArchiveView(point: route.point, model: route.model)
             }
             .navigationDestination(for: Incident.self) { incident in
                 IncidentDetailView(incident: incident)
