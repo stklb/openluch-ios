@@ -71,10 +71,14 @@
 
 ### TestFlight
 
-Вы можете участвовать в тестировании. Пришлите на [support@stklb.ru](mailto:support@stklb.ru) свой Apple ID — адрес
-электронной почты, к которому он привязан. Мы добавим вас в группу внутренних тестеров в TestFlight. Вам придёт
-приглашение: установите приложение [TestFlight](https://apps.apple.com/app/testflight/id899247664) из App Store и
-примите приглашение. Новые версии будут приходить через TestFlight автоматически.
+Вы можете участвовать в тестировании:
+
+1. Установите приложение [TestFlight](https://apps.apple.com/app/testflight/id899247664) из App Store.
+2. Откройте на iPhone ссылку **[testflight.apple.com/join/kQzYpJxS](https://testflight.apple.com/join/kQzYpJxS)** и
+   нажмите «Принять», затем «Установить».
+
+Новые версии будут приходить через TestFlight автоматически. Замечания и ошибки присылайте через приложение TestFlight
+или на [support@stklb.ru](mailto:support@stklb.ru).
 
 ### Сборка .ipa без Mac
 
