@@ -16,7 +16,10 @@ import Charts
 //     остановился, загружается порция, которую видно (PointArchiveModel.show);
 //   • над графиком — суммы (для температур и давлений — средние) видимой части; касание графика
 //     показывает значения за этот час, день или месяц, повторное касание снимает выбор;
-//   • неполный период (текущий месяц) — бледным пунктиром;
+//   • неполный период (текущий месяц) — обычной линией (пунктир не нужен — решение владельца 2026-10-14),
+//     пометка «неполный» — в таблице и в значениях при касании;
+//   • графики — отдельный view ArchiveChartsView: при листании на каждом кадре обновляются только они,
+//     а сводка, таблица и шкала значений — когда график остановился (иначе на Mac листание тормозило);
 //   • под графиком — таблица видимой части. Значения — как везде в приложении: общее округление
 //     (TextFormatting.reading), недостоверные — красно-бордовым, расчётные — зелёным курсивом;
 //     единица — в подписи, а не после числа.
@@ -27,7 +30,8 @@ struct PointArchiveView: View {
     @State private var period: ArchivePeriod = .days
     /// Выбранный пункт меню «Параметр»; nil — первый доступный.
     @State private var metricId: String?
-    /// Левый край видимой части графика — меняется, когда листаем.
+    /// Левый край видимой части графика — когда график остановился (во время листания положение живёт
+    /// в ArchiveChartsView и сюда не передаётся на каждом кадре).
     @State private var scrollStart = Date()
     /// Выбранный касанием час, день или месяц — показываем его значения.
     @State private var selectedDate: Date?
@@ -86,14 +90,10 @@ struct PointArchiveView: View {
                 scrollToLatestRecord()
             }
         }
-        // Загружаем то, что видно, когда график остановился (0,3 с без сдвигов), а не на каждом сдвиге
-        // пальца. .task(id:) перезапускается при каждом сдвиге — поэтому срабатывает только после остановки.
-        // Так же — при открытии экрана и смене периода (первая, самая свежая порция).
+        // Загружаем то, что видно, когда график остановился (scrollStart меняется только после остановки,
+        // см. ArchiveChartsView), а не на каждом сдвиге пальца. Так же — при открытии экрана и смене
+        // периода (первая, самая свежая порция).
         .task(id: VisibleWindow(period: period, start: scrollStart)) {
-            try? await Task.sleep(for: .milliseconds(300))
-            if Task.isCancelled {
-                return
-            }
             // Запас в полшага с обеих сторон: край графика бывает сдвинут на несколько часов
             // (прилипание при листании), и из-за этого не стоит качать целую соседнюю порцию.
             let halfStep = period.adding(1, to: scrollStart, calendar: calendar).timeIntervalSince(scrollStart) / 2
@@ -262,158 +262,59 @@ struct PointArchiveView: View {
     private func chartSection(_ metric: ArchiveMetric) -> some View {
         Section {
             summary(metric)
-            chart(metric, codes: metric.mainCodes, isSeparate: false)
-                .frame(height: 260)
-            ForEach(metric.separateCodes, id: \.self) { code in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("\(ArchiveMetrics.symbol(for: code)), \(unit(of: metric))")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(ArchiveColors.color(for: code, index: 0))
-                    chart(metric, codes: [code], isSeparate: true)
-                        .frame(height: 140)
-                }
-            }
+            ArchiveChartsView(charts: chartData(metric),
+                              period: period,
+                              grid: grid,
+                              unloadedPortions: unloadedPortions,
+                              loadingPortion: archive.loadingPortion,
+                              selectedStart: selectedStart(metric),
+                              settledStart: $scrollStart,
+                              selectedDate: $selectedDate)
         } footer: {
-            Text("Листайте график вбок — более ранние данные загрузятся сами. Коснитесь графика — покажутся значения за этот час, день или месяц. Пунктиром — неполный период.")
+            Text("Листайте график вбок — более ранние данные загрузятся сами. Коснитесь графика — покажутся значения за этот час, день или месяц.")
         }
     }
 
-    /// Точка линии графика.
-    private struct ChartPoint: Identifiable {
-        /// Серия — отдельная линия: код параметра и номер куска (линия прерывается там, где записей нет),
-        /// а у отрезка неполного периода — своя.
-        let series: String
-        let code: String
-        let date: Date
-        let value: Double
-
-        var id: String {
-            return "\(series) \(date.timeIntervalSince1970)"
+    /// Всё, что нужно графикам: основной (подача и обратка) и отдельные (разности) — точки уже посчитаны.
+    /// Считается, только когда экран перерисовывается (график остановился, загрузилась порция…),
+    /// а не на каждом кадре листания.
+    private func chartData(_ metric: ArchiveMetric) -> [ArchiveChartData] {
+        let unit = unit(of: metric)
+        var charts = [ArchiveChartData(title: nil, codes: metric.mainCodes, unit: unit,
+                                       points: chartPoints(codes: metric.mainCodes),
+                                       yDomain: yDomain(codes: metric.mainCodes, includesZero: false))]
+        for code in metric.separateCodes {
+            charts.append(ArchiveChartData(title: "\(ArchiveMetrics.symbol(for: code)), \(unit)", codes: [code], unit: unit,
+                                           points: chartPoints(codes: [code]),
+                                           yDomain: yDomain(codes: [code], includesZero: true)))
         }
+        return charts
     }
 
-    /// Линии полных периодов. Где записей нет (пропуск у прибора или участок не загружен), линия
-    /// прерывается, а не соединяет соседние точки. Неполный период (текущий месяц) — отдельным бледным
-    /// пунктиром от предыдущей точки: значение ещё будет расти, сравнивать его с полными месяцами нельзя.
-    private func chartPoints(codes: [String]) -> (solid: [ChartPoint], incomplete: [ChartPoint]) {
-        var solid: [ChartPoint] = []
-        var incomplete: [ChartPoint] = []
+    /// Точки линий. Где записей нет (пропуск у прибора или участок не загружен), линия прерывается,
+    /// а не соединяет соседние точки: каждый непрерывный кусок — своя серия.
+    private func chartPoints(codes: [String]) -> [ArchiveChartPoint] {
+        var points: [ArchiveChartPoint] = []
         for code in codes {
-            var previous: ChartPoint?
+            let legend = ArchiveMetrics.legendTitle(for: code)
+            var previousDate: Date?
             var piece = 0
             for record in records {
                 guard let value = record.value(of: code) else {
                     continue
                 }
-                if let previous, period.adding(1, to: previous.date, calendar: calendar) != record.date {
+                if let previousDate, period.adding(1, to: previousDate, calendar: calendar) != record.date {
                     piece += 1
                 }
-                let point = ChartPoint(series: "\(code) \(piece)", code: code, date: record.date, value: value.value)
-                if record.isIncomplete {
-                    let series = "\(code) неполный \(record.date.timeIntervalSince1970)"
-                    if let previous {
-                        incomplete.append(ChartPoint(series: series, code: code, date: previous.date,
-                                                     value: previous.value))
-                    }
-                    incomplete.append(ChartPoint(series: series, code: code, date: record.date, value: value.value))
-                } else {
-                    solid.append(point)
-                }
-                previous = point
+                // Точка — посередине часа (суток, месяца), как у подписей оси и линии выбора.
+                let next = period.adding(1, to: record.date, calendar: calendar)
+                let middle = record.date.addingTimeInterval(next.timeIntervalSince(record.date) / 2)
+                points.append(ArchiveChartPoint(series: "\(code) \(piece)", legend: legend,
+                                                date: middle, value: value.value))
+                previousDate = record.date
             }
         }
-        return (solid, incomplete)
-    }
-
-    /// График параметров. Основной и отдельный (Δ) листаются вместе: оба привязаны к одному
-    /// `scrollStart` и одному выбранному часу (дню, месяцу).
-    private func chart(_ metric: ArchiveMetric, codes: [String], isSeparate: Bool) -> some View {
-        let points = chartPoints(codes: codes)
-        let unit = unit(of: metric)
-        return Chart {
-            ForEach(points.solid) { point in
-                LineMark(x: .value("Время", point.date, unit: period.calendarUnit),
-                         y: .value(unit, point.value),
-                         series: .value("Параметр", point.series))
-                .foregroundStyle(by: .value("Параметр", ArchiveMetrics.legendTitle(for: point.code)))
-                .interpolationMethod(.monotone)
-            }
-            ForEach(points.incomplete) { point in
-                LineMark(x: .value("Время", point.date, unit: period.calendarUnit),
-                         y: .value(unit, point.value),
-                         series: .value("Параметр", point.series))
-                .foregroundStyle(by: .value("Параметр", ArchiveMetrics.legendTitle(for: point.code)))
-                .lineStyle(StrokeStyle(lineWidth: 2, dash: [4, 4]))
-                .opacity(0.5)
-            }
-
-            // Ещё не загруженные участки рядом с видимой частью — серые; та, что грузится, — с подписью.
-            ForEach(unloadedPortions, id: \.self) { index in
-                RectangleMark(xStart: .value("Время", grid.first(ofPortion: index)),
-                              xEnd: .value("Время", grid.first(ofPortion: index - 1)))
-                    .foregroundStyle(Color.secondary.opacity(0.12))
-                    .annotation(position: .overlay) {
-                        if !isSeparate && archive.loadingPortion == index {
-                            Text("Загрузка…")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-            }
-
-            // Разность колеблется около нуля — ноль отмечаем линией.
-            if isSeparate {
-                RuleMark(y: .value(unit, 0))
-                    .foregroundStyle(Color.secondary.opacity(0.5))
-            }
-
-            // Выбранный час (день, месяц) — вертикальная линия; его значения — в шапке над графиком.
-            if let selectedStart = selectedStart(metric) {
-                RuleMark(x: .value("Время", selectedStart, unit: period.calendarUnit))
-                    .foregroundStyle(Color.primary.opacity(0.25))
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [4, 3]))
-            }
-        }
-        .chartForegroundStyleScale(
-            domain: codes.map { ArchiveMetrics.legendTitle(for: $0) },
-            range: codes.enumerated().map { ArchiveColors.color(for: $0.element, index: $0.offset) }
-        )
-        // У отдельного графика легенда не нужна — название над ним.
-        .chartLegend(isSeparate ? .hidden : .visible)
-        .chartXScale(domain: grid.start...grid.end)
-        // Шкала значений — по видимой части, иначе зимние значения «приплющат» летние.
-        .chartYScale(domain: yDomain(codes: codes, includesZero: isSeparate))
-        .chartXAxis { xAxis }
-        // Подписи шкалы значений одной ширины — чтобы дни основного и отдельного графиков
-        // стояли точно друг под другом.
-        .chartYAxis {
-            AxisMarks(position: .trailing) { value in
-                AxisGridLine()
-                AxisValueLabel {
-                    if let number = value.as(Double.self) {
-                        Text(number.formatted(.number.locale(russian)))
-                            .frame(width: 40, alignment: .leading)
-                    }
-                }
-            }
-        }
-        // Листание: на экране — сутки, 2 недели или год, остальное за краем.
-        .chartScrollableAxes(.horizontal)
-        .chartXVisibleDomain(length: period.visibleSeconds)
-        .chartScrollPosition(x: $scrollStart)
-        .chartScrollTargetBehavior(scrollSnapping)
-        .chartGesture { chartProxy in
-            // Касание выбирает час (день, месяц); повторное касание того же места снимает выбор.
-            SpatialTapGesture().onEnded { tap in
-                let touched: Date? = chartProxy.value(atX: tap.location.x)
-                if let touched, let selectedDate,
-                   calendar.isDate(touched, equalTo: selectedDate, toGranularity: period.calendarUnit) {
-                    self.selectedDate = nil
-                } else {
-                    selectedDate = touched
-                }
-            }
-        }
+        return points
     }
 
     /// Незагруженные порции рядом с видимой частью графика (на экран в обе стороны) — для серых участков.
@@ -447,53 +348,6 @@ struct PointArchiveView: View {
         }
         let margin = (high - low) * 0.1
         return (low - margin)...(high + margin)
-    }
-
-    /// Подписи оси времени — только опорные, чтобы не слипались. Текст — по-русски, как везде в приложении.
-    @AxisContentBuilder
-    private var xAxis: some AxisContent {
-        switch period {
-        case .hours:
-            AxisMarks(values: .stride(by: .hour, count: 3)) { value in
-                AxisGridLine()
-                AxisValueLabel {
-                    if let date = value.as(Date.self) {
-                        Text(date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).locale(russian)))
-                    }
-                }
-            }
-        case .days:
-            AxisMarks(values: .stride(by: .day, count: 2)) { value in
-                AxisGridLine()
-                AxisValueLabel {
-                    if let date = value.as(Date.self) {
-                        Text(date.formatted(.dateTime.day().locale(russian)))
-                    }
-                }
-            }
-        case .months:
-            AxisMarks(values: .stride(by: .month, count: 2)) { value in
-                AxisGridLine()
-                AxisValueLabel {
-                    if let date = value.as(Date.self) {
-                        Text(date.formatted(.dateTime.month(.abbreviated).locale(russian)))
-                    }
-                }
-            }
-        }
-    }
-
-    /// Листание «прилипает» к началу часа, суток или месяца, а большим рывком — к полуночи,
-    /// понедельнику или январю.
-    private var scrollSnapping: ValueAlignedChartScrollTargetBehavior {
-        switch period {
-        case .hours:
-            return .valueAligned(matching: DateComponents(minute: 0), majorAlignment: .matching(DateComponents(hour: 0)))
-        case .days:
-            return .valueAligned(matching: DateComponents(hour: 0), majorAlignment: .matching(DateComponents(weekday: 2)))
-        case .months:
-            return .valueAligned(matching: DateComponents(day: 1), majorAlignment: .matching(DateComponents(month: 1)))
-        }
     }
 
     /// Начало выбранного часа (дня, месяца) — если касание попало туда, где есть данные.
@@ -653,6 +507,244 @@ struct PointArchiveView: View {
             return date.formatted(.dateTime.day().month(.abbreviated).weekday(.short).locale(russian))
         case .months:
             return date.formatted(.dateTime.month(.wide).year().locale(russian))
+        }
+    }
+}
+
+/// Точка линии графика.
+struct ArchiveChartPoint {
+    /// Серия — отдельная линия: код параметра и номер непрерывного куска.
+    let series: String
+    /// Подпись в легенде («Подача», «Обратка»…) — по ней же цвет линии.
+    let legend: String
+    /// Середина часа (суток, месяца) записи — там точка стоит на графике.
+    let date: Date
+    let value: Double
+}
+
+/// Один график: основной (подача и обратка) или отдельный (разность — со своей шкалой).
+struct ArchiveChartData {
+    /// Подпись над отдельным графиком («ΔQ, Гкал»); у основного — нет, у него легенда.
+    let title: String?
+    let codes: [String]
+    let unit: String
+    let points: [ArchiveChartPoint]
+    /// Шкала значений — по видимой части (считается, когда график остановился).
+    let yDomain: ClosedRange<Double>
+
+    var isSeparate: Bool {
+        return title != nil
+    }
+}
+
+/// Основной график и графики разностей — листаются вместе.
+///
+/// Отдельный view — ради скорости. Положение графика при листании меняется на каждом кадре. Пока оно
+/// жило в PointArchiveView, на каждом кадре заново считался весь экран: точки по всем загруженным
+/// записям, сводка, таблица — и на Mac листание заметно тормозило. Теперь положение (`position`) живёт
+/// здесь: на каждом кадре обновляются только графики, а экрану новое положение (`settledStart`)
+/// передаётся, когда график остановился (0,3 с без сдвигов).
+///
+/// Линии рисуются LinePlot (iOS 18): одна линия на весь массив точек вместо тысяч отдельных LineMark —
+/// так Apple советует рисовать большие наборы данных.
+private struct ArchiveChartsView: View {
+    let charts: [ArchiveChartData]
+    let period: ArchivePeriod
+    let grid: ArchiveGrid
+    let unloadedPortions: [Int]
+    let loadingPortion: Int?
+    let selectedStart: Date?
+    @Binding var settledStart: Date
+    @Binding var selectedDate: Date?
+
+    /// Левый край видимой части — меняется на каждом кадре листания.
+    @State private var position = Date()
+
+    private let calendar = ArchiveDates.calendar
+    private let russian = Locale(identifier: "ru_RU")
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(charts.indices, id: \.self) { index in
+                let data = charts[index]
+                if let title = data.title {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(title)
+                            .font(.subheadline.bold())
+                            .foregroundStyle(ArchiveColors.color(for: data.codes[0], index: 0))
+                        chart(data)
+                            .frame(height: 140)
+                    }
+                } else {
+                    chart(data)
+                        .frame(height: 260)
+                }
+            }
+        }
+        .onAppear {
+            position = settledStart
+        }
+        // Экран сам сдвинул график (смена периода, «к самым свежим») — переходим туда.
+        .onChange(of: settledStart) {
+            if position != settledStart {
+                position = settledStart
+            }
+        }
+        // График остановился (0,3 с без сдвигов) — сообщаем экрану. .task(id:) перезапускается при каждом
+        // сдвиге, поэтому до экрана доходит только положение после остановки.
+        .task(id: position) {
+            try? await Task.sleep(for: .milliseconds(300))
+            if !Task.isCancelled && settledStart != position {
+                settledStart = position
+            }
+        }
+    }
+
+    private func chart(_ data: ArchiveChartData) -> some View {
+        Chart {
+            // Без `unit:` у оси времени: с ним LinePlot падает («Range requires comparable data»),
+            // поэтому точки сразу стоят посередине часа (суток, месяца) — см. chartPoints.
+            LinePlot(data.points,
+                     x: .value("Время", \.date),
+                     y: .value(data.unit, \.value),
+                     series: .value("Параметр", \.series))
+            .foregroundStyle(by: .value("Параметр", \.legend))
+            .interpolationMethod(.monotone)
+
+            // Ещё не загруженные участки рядом с видимой частью — серые; та, что грузится, — с подписью.
+            ForEach(unloadedPortions, id: \.self) { index in
+                RectangleMark(xStart: .value("Время", grid.first(ofPortion: index)),
+                              xEnd: .value("Время", grid.first(ofPortion: index - 1)))
+                    .foregroundStyle(Color.secondary.opacity(0.12))
+                    .annotation(position: .overlay) {
+                        if !data.isSeparate && loadingPortion == index {
+                            Text("Загрузка…")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+            }
+
+            // Разность колеблется около нуля — ноль отмечаем линией.
+            if data.isSeparate {
+                RuleMark(y: .value(data.unit, 0))
+                    .foregroundStyle(Color.secondary.opacity(0.5))
+            }
+
+            // Выбранный час (день, месяц) — вертикальная линия; его значения — в шапке над графиком.
+            if let selectedStart {
+                RuleMark(x: .value("Время", selectedStart, unit: period.calendarUnit))
+                    .foregroundStyle(Color.primary.opacity(0.25))
+                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [4, 3]))
+            }
+        }
+        .chartForegroundStyleScale(
+            domain: data.codes.map { ArchiveMetrics.legendTitle(for: $0) },
+            range: data.codes.enumerated().map { ArchiveColors.color(for: $0.element, index: $0.offset) }
+        )
+        // У отдельного графика легенда не нужна — название над ним.
+        .chartLegend(data.isSeparate ? .hidden : .visible)
+        .chartXScale(domain: grid.start...grid.end)
+        // Шкала значений — по видимой части, иначе зимние значения «приплющат» летние.
+        .chartYScale(domain: data.yDomain)
+        .chartXAxis { xAxis }
+        // Подписи шкалы значений одной ширины — чтобы дни основного и отдельного графиков
+        // стояли точно друг под другом.
+        .chartYAxis {
+            AxisMarks(position: .trailing) { value in
+                AxisGridLine()
+                AxisValueLabel {
+                    if let number = value.as(Double.self) {
+                        Text(number.formatted(.number.locale(russian)))
+                            .frame(width: 40, alignment: .leading)
+                    }
+                }
+            }
+        }
+        // Листание: на экране — сутки, 2 недели или год, остальное за краем.
+        .chartScrollableAxes(.horizontal)
+        .chartXVisibleDomain(length: period.visibleSeconds)
+        .chartScrollPosition(x: $position)
+        .chartScrollTargetBehavior(scrollSnapping)
+        .chartGesture { chartProxy in
+            // Касание выбирает час (день, месяц); повторное касание того же места снимает выбор.
+            SpatialTapGesture().onEnded { tap in
+                let touched: Date? = chartProxy.value(atX: tap.location.x)
+                if let touched, let selectedDate,
+                   calendar.isDate(touched, equalTo: selectedDate, toGranularity: period.calendarUnit) {
+                    self.selectedDate = nil
+                } else {
+                    selectedDate = touched
+                }
+            }
+        }
+    }
+
+    /// Подписи и линии сетки оси времени. Текст — по-русски, как везде в приложении.
+    @AxisContentBuilder
+    private var xAxis: some AxisContent {
+        AxisMarks(values: axisDates) { value in
+            AxisGridLine()
+            AxisValueLabel {
+                if let date = value.as(Date.self) {
+                    Text(axisLabel(date))
+                }
+            }
+        }
+    }
+
+    /// Даты подписей оси — только рядом с видимой частью (экран влево и экран вправо), а не на всю
+    /// длину графика: на 3 года это сотни подписей, и Swift Charts перебирает их все на каждом кадре
+    /// листания — на Mac листание из-за этого тормозило (замер 2026-10-14). Список считается по текущему
+    /// положению графика, поэтому при листании подписи не пропадают.
+    /// Шаг — только опорные, чтобы не слипались: каждые 3 часа, каждые 2 дня (1, 3, 5… с начала месяца),
+    /// каждые 2 месяца (январь, март…).
+    private var axisDates: [Date] {
+        let from = period.start(of: position.addingTimeInterval(-period.visibleSeconds), calendar: calendar)
+        let to = position.addingTimeInterval(2 * period.visibleSeconds)
+        var dates: [Date] = []
+        var date = from
+        while date < to {
+            if isAxisDate(date) {
+                dates.append(date)
+            }
+            date = period.adding(1, to: date, calendar: calendar)
+        }
+        return dates
+    }
+
+    private func isAxisDate(_ date: Date) -> Bool {
+        switch period {
+        case .hours:
+            return calendar.component(.hour, from: date) % 3 == 0
+        case .days:
+            return (calendar.component(.day, from: date) - 1) % 2 == 0
+        case .months:
+            return (calendar.component(.month, from: date) - 1) % 2 == 0
+        }
+    }
+
+    private func axisLabel(_ date: Date) -> String {
+        switch period {
+        case .hours:
+            return date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).locale(russian))
+        case .days:
+            return date.formatted(.dateTime.day().locale(russian))
+        case .months:
+            return date.formatted(.dateTime.month(.abbreviated).locale(russian))
+        }
+    }
+
+    /// Листание «прилипает» к началу часа, суток или месяца, а большим рывком — к полуночи,
+    /// понедельнику или январю.
+    private var scrollSnapping: ValueAlignedChartScrollTargetBehavior {
+        switch period {
+        case .hours:
+            return .valueAligned(matching: DateComponents(minute: 0), majorAlignment: .matching(DateComponents(hour: 0)))
+        case .days:
+            return .valueAligned(matching: DateComponents(hour: 0), majorAlignment: .matching(DateComponents(weekday: 2)))
+        case .months:
+            return .valueAligned(matching: DateComponents(day: 1), majorAlignment: .matching(DateComponents(month: 1)))
         }
     }
 }

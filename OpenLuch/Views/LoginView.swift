@@ -23,9 +23,6 @@ struct LoginView: View {
     /// форма стоит посередине, по бокам серый фон. На iPhone экран уже, ограничение не срабатывает.
     private static let maxFormWidth: CGFloat = 540
 
-    /// Боковые отступы формы — чтобы её ширина была не больше maxFormWidth (считается по ширине экрана).
-    @State private var sideMargin: CGFloat = 0
-
     /// Показывать ли пароль открытым текстом (кнопка с глазом справа от поля).
     @State private var isPasswordVisible = false
 
@@ -56,14 +53,6 @@ struct LoginView: View {
         // верхний отступ = половина свободного места. Свободное место узнаём из размеров прокрутки
         // (onScrollGeometryChange, iOS 18). С открытой клавиатурой места нет — отступ сам станет 0.
         .contentMargins(.top, topMargin, for: .scrollContent)
-        // Отступы по бокам — для широкого экрана (iPad, Mac): половина ширины сверх maxFormWidth.
-        // Через отступы прокрутки, а не .frame(maxWidth:): серый фон формы остаётся на весь экран.
-        .contentMargins(.horizontal, sideMargin, for: .scrollContent)
-        .onScrollGeometryChange(for: CGFloat.self) { geometry in
-            geometry.containerSize.width
-        } action: { _, width in
-            sideMargin = max(0, (width - Self.maxFormWidth) / 2)
-        }
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             // Сколько места осталось под формой при нынешнем отступе.
             geometry.containerSize.height - geometry.contentInsets.top - geometry.contentInsets.bottom
@@ -85,6 +74,11 @@ struct LoginView: View {
         // Клавиатура убирается, если потянуть форму вниз (как в «Настройках» iPhone).
         // Сразу при открытии клавиатуру не показываем — пусть пользователь сначала увидит форму.
         .scrollDismissesKeyboard(.interactively)
+        // На широком экране (iPad, Mac) форма — не шире maxFormWidth, посередине; поля по бокам —
+        // того же серого цвета, что фон формы. Обычная рамка, как у карточек (readableWidth).
+        .frame(maxWidth: Self.maxFormWidth)
+        .frame(maxWidth: .infinity)
+        .background(Color(.systemGroupedBackground))
         // Вход не удался (неверный пароль, сервер недоступен…) — вибрация «ошибка».
         // На «Сессия истекла» при открытии экрана вибрации нет: текст есть с самого начала, он не менялся.
         .sensoryFeedback(.error, trigger: model.errorMessage) { _, newMessage in

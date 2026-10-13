@@ -382,6 +382,7 @@ struct DetailColumn<Item: Identifiable, Card: View>: View where Item.ID == Int {
             Group {
                 if let item {
                     card(item)
+                        .readableWidth()
                 } else {
                     ContentUnavailableView(kind.selectPrompt, systemImage: kind.symbolName)
                 }
@@ -420,7 +421,28 @@ extension ListKind {
     }
 }
 
+// MARK: - Ширина карточек на большом экране
+
+/// Наибольшая ширина содержимого карточек (объекта, точки, оборудования, НС, графиков).
+/// На Mac во весь экран и на iPad в горизонтальном положении правая колонка бывает шире 1000 pt —
+/// таблицы «Подача / Обратка / Δ», растянутые на всю ширину, трудно читать: глаз теряет строку.
+/// 700 pt — примерно как у Apple ширина удобного для чтения текста.
+private let readableContentMaxWidth: CGFloat = 700
+
 extension View {
+    /// Карточка — не шире 700 pt, посередине (для iPad и Mac; на iPhone экран уже — ничего не меняется).
+    /// Обычная рамка, без измерения ширины и пересчёта отступов: расчёт в один проход, зациклиться
+    /// нечему (решение владельца 2026-10-14).
+    /// Плата за простоту: на Mac колесо мыши над серыми полями по бокам список не прокручивает.
+    func readableWidth() -> some View {
+        self
+            .frame(maxWidth: readableContentMaxWidth)
+            // Рамка на всю ширину колонки — карточка в ней посередине.
+            .frame(maxWidth: .infinity)
+            // Поля по бокам — того же серого цвета, что фон списка.
+            .background(Color(.systemGroupedBackground))
+    }
+
     /// Общие настройки двух колонок — одинаковые во всех вкладках.
     func appSplitViewStyle() -> some View {
         self

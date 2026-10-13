@@ -303,28 +303,36 @@ struct MeasurePointDetailView: View {
 extension View {
     /// Переходы к карточкам объекта и точки — одинаковые во всех вкладках.
     /// NavigationLink(value: объект или точка) откроет нужную карточку.
+    /// Карточки на большом экране — не шире 700 pt (readableWidth); отчёт PDF — на всю ширину,
+    /// страницу удобнее смотреть крупно.
     func appNavigationDestinations() -> some View {
         self
             .navigationDestination(for: Node.self) { node in
                 NodeDetailView(node: node)
+                    .readableWidth()
             }
             .navigationDestination(for: MeasurePoint.self) { point in
                 MeasurePointDetailView(point: point)
+                    .readableWidth()
             }
             .navigationDestination(for: Equipment.self) { equipment in
                 EquipmentDetailView(equipment: equipment)
+                    .readableWidth()
             }
             .navigationDestination(for: SavedReport.self) { report in
                 ReportViewerView(report: report)
             }
             .navigationDestination(for: PointIncidentsRoute.self) { route in
                 PointIncidentsView(pointId: route.pointId)
+                    .readableWidth()
             }
             .navigationDestination(for: PointArchiveRoute.self) { route in
                 PointArchiveView(point: route.point, model: route.model)
+                    .readableWidth()
             }
             .navigationDestination(for: Incident.self) { incident in
                 IncidentDetailView(incident: incident)
+                    .readableWidth()
             }
     }
 }
