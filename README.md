@@ -6,7 +6,7 @@
 
 Клиент ЛЭРС УЧЁТ для iOS с офлайн-кэшем для работы при плохой связи
 
-[![Release](https://img.shields.io/github/v/release/stklb/openluch-ios?label=release&color=blue)](https://github.com/stklb/openluch-ios/releases)
+[![App Store](https://img.shields.io/itunes/v/6821146410?label=App%20Store&color=blue)](https://apps.apple.com/app/openluch/id6821146410)
 ![iOS 18+](https://img.shields.io/badge/iOS-18%2B-black?logo=apple)
 ![Swift 5](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
@@ -67,11 +67,15 @@
 
 ## Установка
 
-В App Store приложения пока нет.
+### App Store
+
+<a href="https://apps.apple.com/app/openluch/id6821146410"><img src=".github/assets/appstore-badge.svg" alt="Загрузите в App Store" height="40"></a>
+
+Бесплатно, для iPhone с iOS 18 и новее (также работает на iPad и на Mac с Apple Silicon).
 
 ### TestFlight
 
-Вы можете участвовать в тестировании:
+Новые версии до выхода в App Store можно попробовать раньше других:
 
 1. Установите приложение [TestFlight](https://apps.apple.com/app/testflight/id899247664) из App Store.
 2. Откройте на iPhone ссылку **[testflight.apple.com/join/kQzYpJxS](https://testflight.apple.com/join/kQzYpJxS)** и
