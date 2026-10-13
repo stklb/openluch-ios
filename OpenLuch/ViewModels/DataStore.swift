@@ -566,6 +566,11 @@ final class DataStore {
         return nodes.first { $0.id == nodeId }
     }
 
+    /// Точка учёта по номеру — из кэша.
+    func measurePoint(withId pointId: Int) -> MeasurePoint? {
+        return measurePoints.first { $0.id == pointId }
+    }
+
     /// Оборудование по номеру — из кэша.
     func equipment(withId equipmentId: Int) -> Equipment? {
         return equipment.first { $0.id == equipmentId }

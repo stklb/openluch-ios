@@ -19,6 +19,13 @@ struct LoginView: View {
     /// Верхний отступ формы — чтобы она стояла посередине экрана (считается по размерам прокрутки).
     @State private var topMargin: CGFloat = 0
 
+    /// Наибольшая ширина формы. На iPad и Mac растянутые на весь экран поля неудобны и смотрятся пусто —
+    /// форма стоит посередине, по бокам серый фон. На iPhone экран уже, ограничение не срабатывает.
+    private static let maxFormWidth: CGFloat = 540
+
+    /// Боковые отступы формы — чтобы её ширина была не больше maxFormWidth (считается по ширине экрана).
+    @State private var sideMargin: CGFloat = 0
+
     /// Показывать ли пароль открытым текстом (кнопка с глазом справа от поля).
     @State private var isPasswordVisible = false
 
@@ -49,6 +56,14 @@ struct LoginView: View {
         // верхний отступ = половина свободного места. Свободное место узнаём из размеров прокрутки
         // (onScrollGeometryChange, iOS 18). С открытой клавиатурой места нет — отступ сам станет 0.
         .contentMargins(.top, topMargin, for: .scrollContent)
+        // Отступы по бокам — для широкого экрана (iPad, Mac): половина ширины сверх maxFormWidth.
+        // Через отступы прокрутки, а не .frame(maxWidth:): серый фон формы остаётся на весь экран.
+        .contentMargins(.horizontal, sideMargin, for: .scrollContent)
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.containerSize.width
+        } action: { _, width in
+            sideMargin = max(0, (width - Self.maxFormWidth) / 2)
+        }
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             // Сколько места осталось под формой при нынешнем отступе.
             geometry.containerSize.height - geometry.contentInsets.top - geometry.contentInsets.bottom
@@ -380,6 +395,8 @@ struct LoginView: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 32)
         .padding(.bottom, 8)
+        // На широком экране — не шире формы, посередине.
+        .frame(maxWidth: Self.maxFormWidth)
         .frame(maxWidth: .infinity)
     }
 

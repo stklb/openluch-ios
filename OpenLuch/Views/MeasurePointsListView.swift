@@ -8,8 +8,16 @@ struct MeasurePointsListView: View {
     @State private var searchText = ""
     @State private var stateFilter: StateFilter = .all
 
+    /// Номер точки, выбранной в списке (карточка — справа на iPad, поверх списка на iPhone).
+    /// Храним номер, а не саму запись: после обновления списка она берётся свежая из кэша.
+    @State private var selectedPointId: Int?
+
+    /// Какие колонки видны на iPad. .all — список и карточка рядом всегда, и в вертикальном положении
+    /// (иначе iOS прячет список за край экрана). Пользователь может скрыть список кнопкой слева вверху.
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
+
     var body: some View {
-        NavigationStack {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             content
                 .navigationTitle("Точки")
                 // Маленький заголовок в одном ряду с кнопками (вкладка внизу и так подписана) —
@@ -28,8 +36,13 @@ struct MeasurePointsListView: View {
                     }
                 }
                 .settingsButton()
-                .appNavigationDestinations()
+                .listColumnWidth()
+        } detail: {
+            DetailColumn(kind: .measurePoints, item: selectedPointId.flatMap { dataStore.measurePoint(withId: $0) }) { point in
+                MeasurePointDetailView(point: point)
+            }
         }
+        .appSplitViewStyle()
         .onAppear {
             dataStore.listDidAppear(.measurePoints)
         }
@@ -43,10 +56,11 @@ struct MeasurePointsListView: View {
             EmptyListView(kind: .measurePoints)
         } else {
             let foundPoints = filteredPoints
-            List {
+            // Нажатие на строку выбирает её, NavigationSplitView показывает карточку.
+            List(selection: $selectedPointId) {
                 Section {
                     ForEach(foundPoints) { point in
-                        NavigationLink(value: point) {
+                        NavigationLink(value: point.id) {
                             MeasurePointRow(point: point, showsNode: true)
                         }
                     }

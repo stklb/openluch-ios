@@ -11,8 +11,16 @@ struct EquipmentListView: View {
     @Environment(DataStore.self) private var dataStore
     @State private var searchText = ""
 
+    /// Номер оборудования, выбранного в списке (карточка — справа на iPad, поверх списка на iPhone).
+    /// Храним номер, а не саму запись: после обновления списка она берётся свежая из кэша.
+    @State private var selectedEquipmentId: Int?
+
+    /// Какие колонки видны на iPad. .all — список и карточка рядом всегда, и в вертикальном положении
+    /// (иначе iOS прячет список за край экрана). Пользователь может скрыть список кнопкой слева вверху.
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
+
     var body: some View {
-        NavigationStack {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             content
                 .navigationTitle("Оборудование")
                 // Маленький заголовок в одном ряду с кнопками (вкладка внизу и так подписана) —
@@ -23,8 +31,13 @@ struct EquipmentListView: View {
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always),
                             prompt: "Модель, номер или объект")
                 .settingsButton()
-                .appNavigationDestinations()
+                .listColumnWidth()
+        } detail: {
+            DetailColumn(kind: .equipment, item: selectedEquipmentId.flatMap { dataStore.equipment(withId: $0) }) { item in
+                EquipmentDetailView(equipment: item)
+            }
         }
+        .appSplitViewStyle()
         .onAppear {
             dataStore.listDidAppear(.equipment)
         }
@@ -40,10 +53,11 @@ struct EquipmentListView: View {
             let foundEquipment = filteredEquipment
             // Сегодняшний день считаем один раз на весь список, а не в каждой строке.
             let today = Equipment.calendarDay(of: Date())
-            List {
+            // Нажатие на строку выбирает её, NavigationSplitView показывает карточку.
+            List(selection: $selectedEquipmentId) {
                 Section {
                     ForEach(foundEquipment) { item in
-                        NavigationLink(value: item) {
+                        NavigationLink(value: item.id) {
                             EquipmentRow(equipment: item, today: today)
                         }
                     }

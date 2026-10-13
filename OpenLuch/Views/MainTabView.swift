@@ -25,13 +25,13 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            Tab("Объекты", systemImage: "building.2", value: AppTab.nodes) {
+            Tab("Объекты", systemImage: ListKind.nodes.symbolName, value: AppTab.nodes) {
                 NodesListView()
             }
-            Tab("Точки", systemImage: "gauge.with.dots.needle.33percent", value: AppTab.measurePoints) {
+            Tab("Точки", systemImage: ListKind.measurePoints.symbolName, value: AppTab.measurePoints) {
                 MeasurePointsListView()
             }
-            Tab("Оборудование", systemImage: "wrench.and.screwdriver", value: AppTab.equipment) {
+            Tab("Оборудование", systemImage: ListKind.equipment.symbolName, value: AppTab.equipment) {
                 EquipmentListView()
             }
         }

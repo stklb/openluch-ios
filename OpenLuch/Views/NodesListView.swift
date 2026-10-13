@@ -13,9 +13,16 @@ struct NodesListView: View {
     @State private var stateFilter: StateFilter = .all
     /// Выбранная группа объектов; 0 — все объекты. @AppStorage — запоминается в настройках приложения.
     @AppStorage("nodes.selectedGroupId") private var selectedGroupId = 0
+    /// Номер объекта, выбранного в списке (его карточка — справа на iPad, поверх списка на iPhone).
+    /// Храним номер, а не сам объект: после обновления списка объект берётся свежий из кэша.
+    @State private var selectedNodeId: Int?
+
+    /// Какие колонки видны на iPad. .all — список и карточка рядом всегда, и в вертикальном положении
+    /// (иначе iOS прячет список за край экрана). Пользователь может скрыть список кнопкой слева вверху.
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
 
     var body: some View {
-        NavigationStack {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             content
                 .navigationTitle(selectedGroup?.title ?? "Объекты")
                 // Маленький заголовок в одном ряду с кнопками (вкладка внизу и так подписана) —
@@ -39,8 +46,13 @@ struct NodesListView: View {
                     }
                 }
                 .settingsButton()
-                .appNavigationDestinations()
+                .listColumnWidth()
+        } detail: {
+            DetailColumn(kind: .nodes, item: selectedNodeId.flatMap { dataStore.node(withId: $0) }) { node in
+                NodeDetailView(node: node)
+            }
         }
+        .appSplitViewStyle()
         .onAppear {
             dataStore.listDidAppear(.nodes)
         }
@@ -55,10 +67,12 @@ struct NodesListView: View {
             EmptyListView(kind: .nodes)
         } else {
             let foundNodes = filteredNodes
-            List {
+            // List(selection:) + NavigationLink(value: номер) — нажатие выбирает объект,
+            // а NavigationSplitView показывает его карточку.
+            List(selection: $selectedNodeId) {
                 Section {
                     ForEach(foundNodes) { node in
-                        NavigationLink(value: node) {
+                        NavigationLink(value: node.id) {
                             NodeRow(node: node)
                         }
                     }

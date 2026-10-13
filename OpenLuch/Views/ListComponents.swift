@@ -362,6 +362,84 @@ extension View {
     }
 }
 
+// MARK: - Две колонки: список и карточка
+
+/// Каждая вкладка устроена как NavigationSplitView: слева список, справа карточка выбранного.
+/// На iPad (и на Mac) колонки стоят рядом. На iPhone и в узком окне iPad (Split View) iOS сама
+/// «складывает» их в один экран: нажали строку — карточка открывается поверх списка, как раньше.
+///
+/// Это — правая колонка: карточка выбранного элемента со своей стопкой экранов
+/// (переходы из карточки — к точке, графикам, НС… — открываются здесь же, справа).
+/// Ничего не выбрано — подсказка «Выберите …».
+struct DetailColumn<Item: Identifiable, Card: View>: View where Item.ID == Int {
+    let kind: ListKind
+    /// Выбранный элемент (из кэша по номеру) или nil.
+    let item: Item?
+    @ViewBuilder let card: (Item) -> Card
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let item {
+                    card(item)
+                } else {
+                    ContentUnavailableView(kind.selectPrompt, systemImage: kind.symbolName)
+                }
+            }
+            .appNavigationDestinations()
+        }
+        // Выбрали в списке другой элемент — карточка и всё, что из неё открыто, начинаются заново.
+        // Иначе SwiftUI оставил бы от прежней карточки выбранную подвкладку и загруженные данные.
+        .id(item?.id)
+    }
+}
+
+extension ListKind {
+    /// Значок вкладки (он же — в подсказке пустой правой колонки).
+    var symbolName: String {
+        switch self {
+        case .nodes:
+            return "building.2"
+        case .measurePoints:
+            return "gauge.with.dots.needle.33percent"
+        case .equipment:
+            return "wrench.and.screwdriver"
+        }
+    }
+
+    /// Подсказка в пустой правой колонке на iPad.
+    var selectPrompt: String {
+        switch self {
+        case .nodes:
+            return "Выберите объект"
+        case .measurePoints:
+            return "Выберите точку учёта"
+        case .equipment:
+            return "Выберите оборудование"
+        }
+    }
+}
+
+extension View {
+    /// Общие настройки двух колонок — одинаковые во всех вкладках.
+    func appSplitViewStyle() -> some View {
+        self
+            // .balanced — список и карточка видны рядом и в вертикальном положении iPad
+            // (иначе iOS прячет список за край, и сразу после запуска видна только пустая подсказка).
+            .navigationSplitViewStyle(.balanced)
+    }
+
+    /// Ширина левой колонки со списком на iPad (на iPhone не действует).
+    func listColumnWidth() -> some View {
+        // Не уже 350 pt: вверху колонки в один ряд стоят ⚙︎, заголовок с «Обновлено сегодня в 02:13»,
+        // фильтр и кнопка «скрыть список» — при 340 pt и меньше (iPad mini) подпись обрезается.
+        // Шире не нужно: на iPad mini (744 pt) список «плавает» с отступом 10 pt, карточке справа остаётся
+        // 744 − 10 − 350 = 384 pt — почти как экран iPhone (390 pt), под который карточки сделаны
+        // (решение владельца 2026-10-14).
+        navigationSplitViewColumnWidth(min: 350, ideal: 380, max: 480)
+    }
+}
+
 // MARK: - Строка над списком
 
 extension ListKind {
