@@ -73,6 +73,18 @@ nonisolated struct Node: Codable, Identifiable, Hashable, Sendable {
         }
     }
 
+    /// Подпись сезона в фильтре: «Летний», «Отопительный», остальное — «Не задан».
+    static func seasonTitle(_ season: String) -> String {
+        switch season {
+        case "Summer":
+            return "Летний"
+        case "Winter":
+            return "Отопительный"
+        default:
+            return "Не задан"
+        }
+    }
+
     /// Координаты, если они заданы (нули означают «не заданы»).
     var mapLocation: GeoLocation? {
         guard let geoLocation, geoLocation.latitude != 0 || geoLocation.longitude != 0 else {

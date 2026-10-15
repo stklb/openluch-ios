@@ -566,6 +566,15 @@ final class DataStore {
         return nodes.first { $0.id == nodeId }
     }
 
+    /// Номера объектов группы — для фильтров списков. nil — группа не выбрана или её больше нет на сервере
+    /// (тогда фильтр по группе не действует).
+    func nodeIds(inGroup groupId: Int?) -> Set<Int>? {
+        guard let groupId, let group = nodeGroups.first(where: { $0.id == groupId }) else {
+            return nil
+        }
+        return Set(group.memberIds)
+    }
+
     /// Точка учёта по номеру — из кэша.
     func measurePoint(withId pointId: Int) -> MeasurePoint? {
         return measurePoints.first { $0.id == pointId }

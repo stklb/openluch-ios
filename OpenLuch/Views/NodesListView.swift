@@ -4,15 +4,14 @@ import SwiftUI
 // Список не загружается при каждом открытии — см. правила обновления в DataStore.
 // Жест «потянуть вниз для обновления» намеренно не делаем (решение владельца, PLAN.md).
 //
-// Группы объектов: если на сервере они есть, в меню фильтра (кнопка вверху справа) появляется
-// раздел «Группа»: «Все объекты» или одна группа. Заголовок экрана показывает выбранную группу,
-// значок фильтра закрашивается. Выбор запоминается между запусками.
+// Фильтры (кнопка вверху справа, окно «Фильтры»): состояние, группа, тип объекта, сезон — вместе.
+// Заголовок экрана показывает выбранную группу. Выбор запоминается между запусками.
 struct NodesListView: View {
     @Environment(DataStore.self) private var dataStore
     @State private var searchText = ""
-    @State private var stateFilter: StateFilter = .all
-    /// Выбранная группа объектов; 0 — все объекты. @AppStorage — запоминается в настройках приложения.
-    @AppStorage("nodes.selectedGroupId") private var selectedGroupId = 0
+    /// Фильтры — JSON в настройках приложения (@AppStorage), см. NodeFilter.
+    @AppStorage("filters.nodes") private var savedFilter = Data()
+    @State private var isFiltersShown = false
     /// Номер объекта, выбранного в списке (его карточка — справа на iPad, поверх списка на iPhone).
     /// Храним номер, а не сам объект: после обновления списка объект берётся свежий из кэша.
     @State private var selectedNodeId: Int?
@@ -24,7 +23,7 @@ struct NodesListView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             content
-                .navigationTitle(selectedGroup?.title ?? "Объекты")
+                .navigationTitle(selectedGroup(filter.wrappedValue)?.title ?? "Объекты")
                 // Маленький заголовок в одном ряду с кнопками (вкладка внизу и так подписана) —
                 // экономит ≈50 pt сверху (решение владельца 2026-10-06).
                 .navigationBarTitleDisplayMode(.inline)
@@ -35,15 +34,14 @@ struct NodesListView: View {
                 .toolbar {
                     if !dataStore.nodes.isEmpty {
                         ToolbarItem(placement: .topBarTrailing) {
-                            // Количество в пунктах — по объектам выбранной группы.
-                            StateFilterMenu(filter: $stateFilter, states: nodesInSelectedGroup.map { $0.itemState },
-                                            isExtraFilterActive: selectedGroup != nil) {
-                                if !dataStore.nodeGroups.isEmpty {
-                                    groupMenu
-                                }
+                            FilterButton(isActive: filter.wrappedValue.isActive) {
+                                isFiltersShown = true
                             }
                         }
                     }
+                }
+                .sheet(isPresented: $isFiltersShown) {
+                    filtersSheet
                 }
                 .settingsButton()
                 .listColumnWidth()
@@ -66,7 +64,8 @@ struct NodesListView: View {
         } else if dataStore.nodes.isEmpty {
             EmptyListView(kind: .nodes)
         } else {
-            let foundNodes = filteredNodes
+            let current = filter.wrappedValue
+            let foundNodes = filteredNodes(current)
             // List(selection:) + NavigationLink(value: номер) — нажатие выбирает объект,
             // а NavigationSplitView показывает его карточку.
             List(selection: $selectedNodeId) {
@@ -77,7 +76,12 @@ struct NodesListView: View {
                         }
                     }
                 } header: {
-                    ListStatusHeader(kind: .nodes)
+                    VStack(alignment: .leading, spacing: 4) {
+                        ListStatusHeader(kind: .nodes)
+                        if current.isActive {
+                            ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                        }
+                    }
                 }
                 // Линия над первой строкой не нужна: над ней теперь обычно ничего нет
                 // (итог списка — в подзаголовке экрана).
@@ -85,20 +89,14 @@ struct NodesListView: View {
             }
             .listStyle(.plain)
             .listTitle(kind: .nodes, shownCount: foundNodes.count,
-                       isFiltered: isSearching || stateFilter != .all || selectedGroup != nil,
-                       groupTitle: selectedGroup?.title)
+                       isFiltered: isSearching || current.isActive,
+                       groupTitle: selectedGroup(current)?.title)
             .overlay {
                 if foundNodes.isEmpty {
                     if isSearching {
                         ContentUnavailableView.search(text: searchText)
-                    } else if let selectedGroup, stateFilter == .all {
-                        ContentUnavailableView("В группе нет объектов",
-                                               systemImage: "folder",
-                                               description: Text("В группе «\(selectedGroup.title)» нет объектов, доступных этой учётной записи."))
                     } else {
-                        ContentUnavailableView("Таких объектов нет",
-                                               systemImage: "line.3.horizontal.decrease.circle",
-                                               description: Text("Фильтр: «\(stateFilter.title)»."))
+                        FilteredEmptyView(summary: summary(current), reset: resetFilter)
                     }
                 }
             }
@@ -109,68 +107,90 @@ struct NodesListView: View {
         return !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    // MARK: - Группы
+    // MARK: - Фильтры
 
-    /// Выбранная группа — или nil («Все объекты», а также если группу удалили на сервере).
-    private var selectedGroup: NodeGroup? {
-        if selectedGroupId == 0 {
-            return nil
-        }
-        return dataStore.nodeGroups.first { $0.id == selectedGroupId }
+    /// Фильтры: читаются из настроек и туда же сохраняются при каждом изменении.
+    private var filter: Binding<NodeFilter> {
+        Binding(get: { NodeFilter.decode(savedFilter) },
+                set: { savedFilter = $0.encoded })
     }
 
-    /// Раздел меню фильтра «Группа»: «Все объекты» и группы — с количеством объектов, галочка у выбранной.
-    private var groupMenu: some View {
-        Section("Группа") {
-            groupToggle(title: "Все объекты (\(dataStore.nodes.count))", groupId: 0)
-            ForEach(dataStore.nodeGroups) { group in
-                groupToggle(title: "\(group.title) (\(group.memberIds.count))", groupId: group.id)
-            }
-        }
+    private func resetFilter() {
+        filter.wrappedValue = NodeFilter()
     }
 
-    /// Объекты выбранной группы (или все, если группа не выбрана).
-    private var nodesInSelectedGroup: [Node] {
-        guard let group = selectedGroup else {
+    /// Выбранная группа — или nil (не выбрана или удалена на сервере).
+    private func selectedGroup(_ current: NodeFilter) -> NodeGroup? {
+        return dataStore.nodeGroups.first { $0.id == current.groupId }
+    }
+
+    /// Объекты, подходящие под фильтры и поиск (поиск — по названию и адресу).
+    private func filteredNodes(_ current: NodeFilter) -> [Node] {
+        if !isSearching && !current.isActive {
             return dataStore.nodes
         }
-        let memberIds = Set(group.memberIds)
-        return dataStore.nodes.filter { memberIds.contains($0.id) }
-    }
-
-    /// Пункт меню группы: переключатель с галочкой у выбранной (как в StateFilterMenu).
-    private func groupToggle(title: String, groupId: Int) -> some View {
-        Toggle(title, isOn: Binding(
-            get: { selectedGroupId == groupId },
-            set: { isOn in
-                if isOn {
-                    selectedGroupId = groupId
-                }
-            }
-        ))
-    }
-
-    // MARK: - Поиск и фильтр
-
-    /// Поиск, фильтр и группа — на телефоне, по уже загруженному списку (поиск — по названию и адресу).
-    private var filteredNodes: [Node] {
-        let group = selectedGroup
-        if !isSearching && stateFilter == .all && group == nil {
-            return dataStore.nodes
-        }
-        // Номера объектов группы — множеством, чтобы проверка была быстрой и на 1000+ объектов.
-        let groupMemberIds = Set(group?.memberIds ?? [])
+        let groupMembers = dataStore.nodeIds(inGroup: current.groupId)
         return dataStore.nodes.filter { node in
-            if group != nil && !groupMemberIds.contains(node.id) {
-                return false
-            }
-            if !stateFilter.matches(node.itemState) {
+            if !current.matches(node, groupMembers: groupMembers) {
                 return false
             }
             if isSearching {
                 return TextFormatting.matches(node.title + " " + node.address, query: searchText)
             }
             return true
+        }
+    }
+
+    /// Сколько объектов останется, если изменить один фильтр (для чисел у вариантов в окне «Фильтры»).
+    private func count(_ change: (inout NodeFilter) -> Void) -> Int {
+        var changed = filter.wrappedValue
+        change(&changed)
+        let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
+        return dataStore.nodes.filter { changed.matches($0, groupMembers: groupMembers) }.count
+    }
+
+    /// «Ошибка · Котельные · Жилой дом» — для строки над списком.
+    private func summary(_ current: NodeFilter) -> String {
+        var parts: [String] = []
+        if current.state != .all {
+            parts.append(current.state.title)
+        }
+        if let group = selectedGroup(current) {
+            parts.append(group.title)
+        }
+        if let kind = current.kind {
+            parts.append(NodeKind(apiValue: kind).title)
+        }
+        if let season = current.season {
+            parts.append(Node.seasonTitle(season))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private var filtersSheet: some View {
+        FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
+            Section {
+                StateFilterPicker(selection: filter.state) { state in
+                    count { $0.state = state }
+                }
+                FilterPicker(title: "Группа", options: FilterOption.groups(dataStore.nodeGroups),
+                             selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
+                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
+                    count { $0.groupId = value.flatMap { Int($0) } }
+                }
+                FilterPicker(title: "Тип объекта",
+                             options: FilterOption.distinct(dataStore.nodes, value: { $0.type ?? "" },
+                                                            title: { NodeKind(apiValue: $0).title }),
+                             selection: filter.kind) { value in
+                    count { $0.kind = value }
+                }
+                FilterPicker(title: "Сезон",
+                             options: FilterOption.distinct(dataStore.nodes, value: { $0.currentSeason ?? "" },
+                                                            title: { Node.seasonTitle($0) }),
+                             selection: filter.season) { value in
+                    count { $0.season = value }
+                }
+            }
         }
     }
 }

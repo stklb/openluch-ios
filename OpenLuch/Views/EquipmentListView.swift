@@ -7,9 +7,14 @@ import SwiftUI
 // Жест «потянуть вниз» намеренно не делаем.
 //
 // По нажатию на строку — карточка оборудования (EquipmentDetailView).
+// Фильтры (кнопка вверху справа, окно «Фильтры»): поверка (в том числе «Нужно поверить до» выбранной
+// даты), тип, группа объектов — вместе. Выбор запоминается между запусками.
 struct EquipmentListView: View {
     @Environment(DataStore.self) private var dataStore
     @State private var searchText = ""
+    /// Фильтры — JSON в настройках приложения (@AppStorage), см. EquipmentFilter.
+    @AppStorage("filters.equipment") private var savedFilter = Data()
+    @State private var isFiltersShown = false
 
     /// Номер оборудования, выбранного в списке (карточка — справа на iPad, поверх списка на iPhone).
     /// Храним номер, а не саму запись: после обновления списка она берётся свежая из кэша.
@@ -30,6 +35,18 @@ struct EquipmentListView: View {
                 // не нужно листать к началу, чтобы искать (решение владельца 2026-10-06).
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always),
                             prompt: "Модель, номер или объект")
+                .toolbar {
+                    if !dataStore.equipment.isEmpty {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            FilterButton(isActive: filter.wrappedValue.isActive) {
+                                isFiltersShown = true
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $isFiltersShown) {
+                    filtersSheet
+                }
                 .settingsButton()
                 .listColumnWidth()
         } detail: {
@@ -50,9 +67,10 @@ struct EquipmentListView: View {
         } else if dataStore.equipment.isEmpty {
             EmptyListView(kind: .equipment)
         } else {
-            let foundEquipment = filteredEquipment
+            let current = filter.wrappedValue
             // Сегодняшний день считаем один раз на весь список, а не в каждой строке.
             let today = Equipment.calendarDay(of: Date())
+            let foundEquipment = filteredEquipment(current, today: today)
             // Нажатие на строку выбирает её, NavigationSplitView показывает карточку.
             List(selection: $selectedEquipmentId) {
                 Section {
@@ -62,17 +80,27 @@ struct EquipmentListView: View {
                         }
                     }
                 } header: {
-                    ListStatusHeader(kind: .equipment)
+                    VStack(alignment: .leading, spacing: 4) {
+                        ListStatusHeader(kind: .equipment)
+                        if current.isActive {
+                            ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                        }
+                    }
                 }
                 // Линия над первой строкой не нужна: над ней теперь обычно ничего нет
                 // (итог списка — в подзаголовке экрана).
                 .listSectionSeparator(.hidden, edges: .top)
             }
             .listStyle(.plain)
-            .listTitle(kind: .equipment, shownCount: foundEquipment.count, isFiltered: isSearching)
+            .listTitle(kind: .equipment, shownCount: foundEquipment.count,
+                       isFiltered: isSearching || current.isActive)
             .overlay {
                 if foundEquipment.isEmpty {
-                    ContentUnavailableView.search(text: searchText)
+                    if isSearching {
+                        ContentUnavailableView.search(text: searchText)
+                    } else {
+                        FilteredEmptyView(summary: summary(current), reset: resetFilter)
+                    }
                 }
             }
         }
@@ -82,14 +110,119 @@ struct EquipmentListView: View {
         return !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    /// Поиск — на телефоне: по модели, заводскому номеру и названию объекта.
-    private var filteredEquipment: [Equipment] {
-        if !isSearching {
+    // MARK: - Фильтры
+
+    /// Фильтры: читаются из настроек и туда же сохраняются при каждом изменении.
+    private var filter: Binding<EquipmentFilter> {
+        Binding(get: { EquipmentFilter.decode(savedFilter) },
+                set: { savedFilter = $0.encoded })
+    }
+
+    private func resetFilter() {
+        filter.wrappedValue = EquipmentFilter()
+    }
+
+    /// Оборудование, подходящее под фильтры и поиск (поиск — по модели, заводскому номеру и объекту).
+    private func filteredEquipment(_ current: EquipmentFilter, today: String) -> [Equipment] {
+        if !isSearching && !current.isActive {
             return dataStore.equipment
         }
+        let groupMembers = dataStore.nodeIds(inGroup: current.groupId)
         return dataStore.equipment.filter { item in
-            let text = item.modelTitle + " " + (item.serialNumber ?? "") + " " + (item.placesTitle ?? "")
-            return TextFormatting.matches(text, query: searchText)
+            if !current.matches(item, groupMembers: groupMembers, today: today) {
+                return false
+            }
+            if isSearching {
+                let text = item.modelTitle + " " + (item.serialNumber ?? "") + " " + (item.placesTitle ?? "")
+                return TextFormatting.matches(text, query: searchText)
+            }
+            return true
+        }
+    }
+
+    /// Сколько записей останется, если изменить один фильтр (для чисел у вариантов в окне «Фильтры»).
+    private func count(_ change: (inout EquipmentFilter) -> Void) -> Int {
+        var changed = filter.wrappedValue
+        change(&changed)
+        let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
+        let today = Equipment.calendarDay(of: Date())
+        return dataStore.equipment.filter { changed.matches($0, groupMembers: groupMembers, today: today) }.count
+    }
+
+    /// «Нужно поверить до 01.03.2027 · Прибор учёта · Котельные» — для строки над списком.
+    private func summary(_ current: EquipmentFilter) -> String {
+        var parts: [String] = []
+        switch current.calibration {
+        case .all:
+            break
+        case .dueBefore:
+            let day = current.dueBeforeDay ?? EquipmentFilter.defaultDueBeforeDay()
+            parts.append("Нужно поверить до \(TextFormatting.calendarDay(day))")
+        case .overdue:
+            parts.append("Поверка истекла")
+        case .noDate:
+            parts.append("Дата поверки не указана")
+        }
+        if let kind = current.kind {
+            parts.append(kind)
+        }
+        if let group = dataStore.nodeGroups.first(where: { $0.id == current.groupId }) {
+            parts.append(group.title)
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Выбор «Поверка». Сменили на другой вариант — выбранная дата забывается
+    /// (иначе фильтр считался бы включённым, хотя показано «Все»).
+    private var calibrationSelection: Binding<String?> {
+        Binding(get: {
+            let calibration = filter.wrappedValue.calibration
+            return calibration == .all ? nil : calibration.rawValue
+        }, set: { value in
+            var changed = filter.wrappedValue
+            changed.calibration = value.flatMap(CalibrationFilter.init(rawValue:)) ?? .all
+            if changed.calibration != .dueBefore {
+                changed.dueBeforeDay = nil
+            }
+            filter.wrappedValue = changed
+        })
+    }
+
+    /// Дата «Нужно поверить до…»: стандартный компактный выбор даты (нажал — открылся календарь).
+    private var dueBeforeDate: Binding<Date> {
+        Binding(get: {
+            let day = filter.wrappedValue.dueBeforeDay ?? EquipmentFilter.defaultDueBeforeDay()
+            return Equipment.date(fromCalendarDay: day) ?? Date()
+        }, set: { date in
+            filter.wrappedValue.dueBeforeDay = Equipment.calendarDay(of: date)
+        })
+    }
+
+    private var filtersSheet: some View {
+        FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
+            Section {
+                FilterPicker(title: "Поверка",
+                             options: CalibrationFilter.allCases.filter { $0 != .all }
+                                .map { FilterOption(value: $0.rawValue, title: $0.title) },
+                             selection: calibrationSelection) { value in
+                    count { $0.calibration = value.flatMap(CalibrationFilter.init(rawValue:)) ?? .all }
+                }
+                if filter.wrappedValue.calibration == .dueBefore {
+                    DatePicker("До", selection: dueBeforeDate, displayedComponents: .date)
+                        .environment(\.locale, Locale(identifier: "ru_RU"))
+                }
+                FilterPicker(title: "Тип",
+                             options: FilterOption.distinct(dataStore.equipment, value: { $0.kindTitle },
+                                                            title: { $0 }),
+                             selection: filter.kind) { value in
+                    count { $0.kind = value }
+                }
+                FilterPicker(title: "Группа объектов", options: FilterOption.groups(dataStore.nodeGroups),
+                             selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
+                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
+                    count { $0.groupId = value.flatMap { Int($0) } }
+                }
+            }
         }
     }
 }

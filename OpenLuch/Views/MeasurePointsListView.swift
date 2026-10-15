@@ -3,10 +3,14 @@ import SwiftUI
 // Вкладка «Точки»: список обычных точек учёта из кэша, поиск вверху, переход к карточке точки.
 // Список может быть большим (1500+ точек ≈ 3 МБ на сервере) — поэтому он хранится на телефоне
 // и обновляется редко (см. DataStore). Жест «потянуть вниз» намеренно не делаем.
+// Фильтры (кнопка вверху справа, окно «Фильтры»): состояние, системы (несколько сразу), группа объектов,
+// тип связи — вместе. Выбор запоминается между запусками.
 struct MeasurePointsListView: View {
     @Environment(DataStore.self) private var dataStore
     @State private var searchText = ""
-    @State private var stateFilter: StateFilter = .all
+    /// Фильтры — JSON в настройках приложения (@AppStorage), см. PointFilter.
+    @AppStorage("filters.points") private var savedFilter = Data()
+    @State private var isFiltersShown = false
 
     /// Номер точки, выбранной в списке (карточка — справа на iPad, поверх списка на iPhone).
     /// Храним номер, а не саму запись: после обновления списка она берётся свежая из кэша.
@@ -30,10 +34,14 @@ struct MeasurePointsListView: View {
                 .toolbar {
                     if !dataStore.measurePoints.isEmpty {
                         ToolbarItem(placement: .topBarTrailing) {
-                            StateFilterMenu(filter: $stateFilter,
-                                            states: dataStore.measurePoints.map { $0.itemState })
+                            FilterButton(isActive: filter.wrappedValue.isActive) {
+                                isFiltersShown = true
+                            }
                         }
                     }
+                }
+                .sheet(isPresented: $isFiltersShown) {
+                    filtersSheet
                 }
                 .settingsButton()
                 .listColumnWidth()
@@ -55,7 +63,8 @@ struct MeasurePointsListView: View {
         } else if dataStore.measurePoints.isEmpty {
             EmptyListView(kind: .measurePoints)
         } else {
-            let foundPoints = filteredPoints
+            let current = filter.wrappedValue
+            let foundPoints = filteredPoints(current)
             // Нажатие на строку выбирает её, NavigationSplitView показывает карточку.
             List(selection: $selectedPointId) {
                 Section {
@@ -65,7 +74,12 @@ struct MeasurePointsListView: View {
                         }
                     }
                 } header: {
-                    ListStatusHeader(kind: .measurePoints)
+                    VStack(alignment: .leading, spacing: 4) {
+                        ListStatusHeader(kind: .measurePoints)
+                        if current.isActive {
+                            ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                        }
+                    }
                 }
                 // Линия над первой строкой не нужна: над ней теперь обычно ничего нет
                 // (итог списка — в подзаголовке экрана).
@@ -73,15 +87,13 @@ struct MeasurePointsListView: View {
             }
             .listStyle(.plain)
             .listTitle(kind: .measurePoints, shownCount: foundPoints.count,
-                          isFiltered: isSearching || stateFilter != .all)
+                       isFiltered: isSearching || current.isActive)
             .overlay {
                 if foundPoints.isEmpty {
                     if isSearching {
                         ContentUnavailableView.search(text: searchText)
                     } else {
-                        ContentUnavailableView("Таких точек нет",
-                                               systemImage: "line.3.horizontal.decrease.circle",
-                                               description: Text("Фильтр: «\(stateFilter.title)»."))
+                        FilteredEmptyView(summary: summary(current), reset: resetFilter)
                     }
                 }
             }
@@ -92,19 +104,101 @@ struct MeasurePointsListView: View {
         return !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    /// Поиск — на телефоне: по полному названию (в нём есть и объект) и адресу.
-    private var filteredPoints: [MeasurePoint] {
-        if !isSearching && stateFilter == .all {
+    // MARK: - Фильтры
+
+    /// Фильтры: читаются из настроек и туда же сохраняются при каждом изменении.
+    private var filter: Binding<PointFilter> {
+        Binding(get: { PointFilter.decode(savedFilter) },
+                set: { savedFilter = $0.encoded })
+    }
+
+    private func resetFilter() {
+        filter.wrappedValue = PointFilter()
+    }
+
+    /// Точки, подходящие под фильтры и поиск (поиск — по полному названию, в нём есть и объект, и адресу).
+    private func filteredPoints(_ current: PointFilter) -> [MeasurePoint] {
+        if !isSearching && !current.isActive {
             return dataStore.measurePoints
         }
+        let groupMembers = dataStore.nodeIds(inGroup: current.groupId)
         return dataStore.measurePoints.filter { point in
-            if !stateFilter.matches(point.itemState) {
+            if !current.matches(point, groupMembers: groupMembers) {
                 return false
             }
             if isSearching {
                 return TextFormatting.matches(point.fullTitle + " " + (point.address ?? ""), query: searchText)
             }
             return true
+        }
+    }
+
+    /// Сколько точек останется, если изменить один фильтр (для чисел у вариантов в окне «Фильтры»).
+    private func count(_ change: (inout PointFilter) -> Void) -> Int {
+        var changed = filter.wrappedValue
+        change(&changed)
+        let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
+        return dataStore.measurePoints.filter { changed.matches($0, groupMembers: groupMembers) }.count
+    }
+
+    /// Подпись системы по коду сервера («Heat» → «Теплоснабжение»).
+    private static func systemTitle(_ systemType: String) -> String {
+        return MeasurePoint.systemTitle(for: systemType)
+    }
+
+    /// Подпись типа связи по коду сервера; не указан — «Не указан».
+    private static func commLinkTitle(_ commLinkType: String) -> String {
+        return MeasurePoint.commLinkTitle(for: commLinkType) ?? "Не указан"
+    }
+
+    /// «Ошибка · Теплоснабжение, ГВС · Котельные · GPRS» — для строки над списком.
+    private func summary(_ current: PointFilter) -> String {
+        var parts: [String] = []
+        if current.state != .all {
+            parts.append(current.state.title)
+        }
+        if !current.systems.isEmpty {
+            parts.append(current.systems.map(MeasurePointsListView.systemTitle).sorted().joined(separator: ", "))
+        }
+        if let group = dataStore.nodeGroups.first(where: { $0.id == current.groupId }) {
+            parts.append(group.title)
+        }
+        if let commLink = current.commLink {
+            parts.append(MeasurePointsListView.commLinkTitle(commLink))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private var filtersSheet: some View {
+        FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
+            Section {
+                StateFilterPicker(selection: filter.state) { state in
+                    count { $0.state = state }
+                }
+                FilterPicker(title: "Группа объектов", options: FilterOption.groups(dataStore.nodeGroups),
+                             selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
+                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
+                    count { $0.groupId = value.flatMap { Int($0) } }
+                }
+                FilterPicker(title: "Тип связи",
+                             options: FilterOption.distinct(dataStore.measurePoints, value: { $0.commLinkType ?? "" },
+                                                            title: MeasurePointsListView.commLinkTitle),
+                             selection: filter.commLink) { value in
+                    count { $0.commLink = value }
+                }
+            }
+            // Системы — со значками, как в строках списка (градусник, краны, молния…).
+            FilterChecklist(title: "Система",
+                            options: FilterOption.distinct(dataStore.measurePoints, value: { $0.systemType ?? "" },
+                                                           title: MeasurePointsListView.systemTitle)
+                                .map { option in
+                                    FilterOption(value: option.value, title: option.title,
+                                                 systemImage: MeasurePoint.systemSymbolName(for: option.value),
+                                                 color: MeasurePoint.systemColor(for: option.value))
+                                },
+                            selection: filter.systems) { value in
+                count { $0.systems = [value] }
+            }
         }
     }
 }

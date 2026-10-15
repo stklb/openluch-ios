@@ -62,6 +62,11 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
 
     /// Название инженерной системы для пользователя.
     var systemTitle: String {
+        return MeasurePoint.systemTitle(for: systemType)
+    }
+
+    /// Система строкой сервера ("Heat"…) → название. Отдельной функцией — нужна и в фильтре списка точек.
+    static func systemTitle(for systemType: String?) -> String {
         switch systemType {
         case "Heat":
             return "Теплоснабжение"
@@ -88,6 +93,11 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
     /// ⚠️ Временные значки из стандартного набора: владелец, возможно, нарисует свои (см. PLAN.md).
     /// ГВС и ХВС — одна капля, различаются цветом (оранжевая и синяя).
     var systemSymbolName: String {
+        return MeasurePoint.systemSymbolName(for: systemType)
+    }
+
+    /// Значок системы по строке сервера ("Heat"…). Отдельной функцией — нужен и в фильтре списка точек.
+    static func systemSymbolName(for systemType: String?) -> String {
         switch systemType {
         // Значки — как в официальной программе ЛЭРС, чтобы пользователи не путались
         // (решение владельца 2026-10-06): тепло — градусник, ГВС и ХВС — водопроводный кран

@@ -146,6 +146,11 @@ struct RowMarker<Icon: View>: View {
 extension MeasurePoint {
     /// Цвет значка инженерной системы (значки — MeasurePoint.systemSymbolName).
     var systemColor: Color {
+        return MeasurePoint.systemColor(for: systemType)
+    }
+
+    /// Цвет значка системы по строке сервера ("Heat"…) — нужен и в фильтре списка точек.
+    static func systemColor(for systemType: String?) -> Color {
         switch systemType {
         case "Heat":
             return .red
@@ -175,104 +180,6 @@ struct SystemIcon: View {
         Image(systemName: point.systemSymbolName)
             .foregroundStyle(point.systemColor)
             .accessibilityLabel(point.systemTitle)
-    }
-}
-
-// MARK: - Фильтр по состоянию
-
-/// Какие записи показывать в списке: все или только с определённым состоянием.
-/// Фильтр работает на телефоне, по кэшу — трафика не тратит.
-enum StateFilter: String, CaseIterable, Identifiable {
-    case all
-    case problems
-    case error
-    case warning
-    case noData
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .all:
-            return "Все"
-        case .problems:
-            return "Ошибки и предупреждения"
-        case .error:
-            return "Ошибка"
-        case .warning:
-            return "Предупреждение"
-        case .noData:
-            return "Нет данных"
-        }
-    }
-
-    /// Подходит ли состояние под фильтр.
-    func matches(_ state: ItemState) -> Bool {
-        switch self {
-        case .all:
-            return true
-        case .problems:
-            return state == .error || state == .warning
-        case .error:
-            return state == .error
-        case .warning:
-            return state == .warning
-        case .noData:
-            return state == .noData
-        }
-    }
-}
-
-/// Кнопка-меню фильтра в панели навигации: «Все», «Ошибка (3)»…
-/// Когда фильтр включён, значок закрашивается — видно, что показан не весь список.
-/// Вкладка «Объекты» добавляет в это же меню выбор группы (`extraContent` — пункты над состояниями,
-/// `isExtraFilterActive` — выбрана ли группа).
-struct StateFilterMenu<ExtraContent: View>: View {
-    @Binding var filter: StateFilter
-    /// Состояния всех записей списка — чтобы показать количество в каждом пункте.
-    let states: [ItemState]
-    var isExtraFilterActive = false
-    @ViewBuilder var extraContent: () -> ExtraContent
-
-    var body: some View {
-        Menu {
-            extraContent()
-            // Раздел меню с подписью «Состояние» (как разделы меню в «Файлах» и «Почте»).
-            // Пункты — переключатели: в меню iOS показывает их с галочкой у выбранного.
-            // (Picker в меню подпись раздела не показывает — поэтому не он.)
-            Section("Состояние") {
-                ForEach(StateFilter.allCases) { option in
-                    Toggle(itemTitle(option), isOn: Binding(
-                        get: { filter == option },
-                        set: { isOn in
-                            if isOn {
-                                filter = option
-                            }
-                        }
-                    ))
-                }
-            }
-        } label: {
-            Label("Фильтр",
-                  systemImage: filter == .all && !isExtraFilterActive
-                    ? "line.3.horizontal.decrease.circle"
-                    : "line.3.horizontal.decrease.circle.fill")
-        }
-    }
-
-    private func itemTitle(_ option: StateFilter) -> String {
-        if option == .all {
-            return option.title
-        }
-        let count = states.filter { option.matches($0) }.count
-        return "\(option.title) (\(count))"
-    }
-}
-
-extension StateFilterMenu where ExtraContent == EmptyView {
-    /// Меню только с фильтром по состоянию (вкладки «Точки», «Оборудование»).
-    init(filter: Binding<StateFilter>, states: [ItemState]) {
-        self.init(filter: filter, states: states, isExtraFilterActive: false, extraContent: { EmptyView() })
     }
 }
 

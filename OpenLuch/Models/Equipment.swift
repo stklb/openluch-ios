@@ -250,10 +250,19 @@ nonisolated struct Equipment: Codable, Identifiable, Hashable, Sendable {
 
     /// День `date` по часам телефона в виде «2026-10-03» — чтобы сравнивать с датами поверки.
     static func calendarDay(of date: Date) -> String {
+        return calendarDayFormatter().string(from: date)
+    }
+
+    /// «2026-10-03» → дата (полночь этого дня). Для выбора даты в фильтре «Нужно поверить до…».
+    static func date(fromCalendarDay day: String) -> Date? {
+        return calendarDayFormatter().date(from: day)
+    }
+
+    private static func calendarDayFormatter() -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
+        return formatter
     }
 }
 
