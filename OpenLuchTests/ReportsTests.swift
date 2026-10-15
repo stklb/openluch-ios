@@ -221,5 +221,16 @@ final class ReportsTests: XCTestCase {
         let long = ReportStore.safeFileName(String(repeating: "Ж", count: 300))
         XCTAssertLessThanOrEqual(long.utf8.count, 255)
         XCTAssertTrue(long.hasSuffix(".pdf"))
+
+        // Длинное имя от сервера: период и тип данных в конце должны уцелеть,
+        // иначе отчёт за сентябрь затёр бы отчёт за август.
+        let head = "Теплоснабжение (системная, одностраничная), Товарищество собственников жилья «Семь ветров», "
+            + "дом 5 корпус 2 - Отопление и ГВС, ввод 1"
+        let august = ReportStore.safeFileName(head + " c 01.08.2026 по 31.08.2026 (Суточные).pdf")
+        let september = ReportStore.safeFileName(head + " c 01.09.2026 по 30.09.2026 (Суточные).pdf")
+        XCTAssertNotEqual(august, september)
+        XCTAssertTrue(september.hasSuffix("c 01.09.2026 по 30.09.2026 (Суточные).pdf"))
+        XCTAssertTrue(september.hasPrefix("Теплоснабжение"))
+        XCTAssertLessThanOrEqual(september.utf8.count, 255)
     }
 }

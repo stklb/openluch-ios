@@ -153,8 +153,10 @@ nonisolated final class ReportStore: Sendable {
             name = String(name.dropLast(4))
         }
         // Имена файлов на iPhone — до 255 байт; русская буква занимает 2 байта.
+        // Режем середину, а не конец: в конце имени период и тип данных («c 01.09.2026 по 30.09.2026
+        // (Суточные)») — без них отчёты за разные периоды получили бы одно имя и затёрли друг друга.
         if name.count > 120 {
-            name = String(name.prefix(120)).trimmingCharacters(in: .whitespaces)
+            name = String(name.prefix(80)) + "…" + String(name.suffix(39))
         }
         // Имя не может начинаться с точки (такой файл будет скрытым).
         while name.hasPrefix(".") {
