@@ -35,12 +35,14 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
     /// в таблицах и графиках»), — номера параметров (DataValue.dataParameterId), в порядке показа.
     /// Настраиваются на сервере; nil или пустой список — показываем все параметры.
     let selectedParamsList: [Int]?
+    /// Потребитель (Customer.id), если он указан у самой точки (обычно указывают у объекта). nil — не указан.
+    let customerId: Int?
 
     /// Создание точки вручную (в тестах). Сервер присылает точки в JSON — их создаёт JSONDecoder.
     init(id: Int, title: String, fullTitle: String, parentTitle: String?, address: String?, nodeId: Int?,
          systemType: String?, resourceKind: String?, state: String?,
          commLinkType: String? = nil, comment: String? = nil, deviceId: Int? = nil,
-         selectedParamsList: [Int]? = nil) {
+         selectedParamsList: [Int]? = nil, customerId: Int? = nil) {
         self.id = id
         self.title = title
         self.fullTitle = fullTitle
@@ -54,6 +56,7 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
         self.comment = comment
         self.deviceId = deviceId
         self.selectedParamsList = selectedParamsList
+        self.customerId = customerId
     }
 
     var itemState: ItemState {

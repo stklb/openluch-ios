@@ -25,6 +25,11 @@ struct FilterOption: Identifiable, Hashable {
             .sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     }
 
+    /// Потребители (номер — строкой), уже по алфавиту (DataStore.customers).
+    static func customers(_ customers: [Customer]) -> [FilterOption] {
+        return customers.map { FilterOption(value: String($0.id), title: $0.title) }
+    }
+
     /// Группы объектов (номер группы — строкой).
     static func groups(_ groups: [NodeGroup]) -> [FilterOption] {
         return groups.map { FilterOption(value: String($0.id), title: $0.title) }

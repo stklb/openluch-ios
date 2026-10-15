@@ -131,7 +131,7 @@ struct NodesListView: View {
         }
         let groupMembers = dataStore.nodeIds(inGroup: current.groupId)
         return dataStore.nodes.filter { node in
-            if !current.matches(node, groupMembers: groupMembers) {
+            if !current.matches(node, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofNode: node)) {
                 return false
             }
             if isSearching {
@@ -146,7 +146,9 @@ struct NodesListView: View {
         var changed = filter.wrappedValue
         change(&changed)
         let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
-        return dataStore.nodes.filter { changed.matches($0, groupMembers: groupMembers) }.count
+        return dataStore.nodes.filter {
+            changed.matches($0, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofNode: $0))
+        }.count
     }
 
     /// «Ошибка · Котельные · Жилой дом» — для строки над списком.
@@ -164,6 +166,9 @@ struct NodesListView: View {
         if let season = current.season {
             parts.append(Node.seasonTitle(season))
         }
+        if let customer = dataStore.customers.first(where: { $0.id == current.customerId }) {
+            parts.append(customer.title)
+        }
         return parts.joined(separator: " · ")
     }
 
@@ -177,6 +182,11 @@ struct NodesListView: View {
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
                                                 set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
                     count { $0.groupId = value.flatMap { Int($0) } }
+                }
+                FilterPicker(title: "Потребитель", options: FilterOption.customers(dataStore.customers),
+                             selection: Binding(get: { filter.wrappedValue.customerId.map(String.init) },
+                                                set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } })) { value in
+                    count { $0.customerId = value.flatMap { Int($0) } }
                 }
                 FilterPicker(title: "Тип объекта",
                              options: FilterOption.distinct(dataStore.nodes, value: { $0.type ?? "" },

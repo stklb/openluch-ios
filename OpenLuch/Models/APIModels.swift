@@ -54,11 +54,38 @@ nonisolated struct ServerInfo: Decodable, Sendable {
 /// В ответе есть и другие поля (территории и т.д.) — они нам не нужны.
 nonisolated struct NodeListResponse: Decodable, Sendable {
     let nodes: [Node]?
+    /// Потребители объектов из ответа (при getCustomers=true; сервер присылает только тех, на кого
+    /// ссылаются объекты, а не весь справочник).
+    let customers: [Customer]?
 }
 
 /// Ответ GET /api/v1/Core/MeasurePoints.
 nonisolated struct MeasurePointListResponse: Decodable, Sendable {
     let measurePoints: [MeasurePoint]?
+    /// Потребители точек из ответа (при getCustomers=true) — как у NodeListResponse.
+    let customers: [Customer]?
+}
+
+/// Потребитель (абонент) — для фильтра «Потребитель». Сервер присылает ещё ИНН, e-mail, телефон
+/// и руководителя — их сознательно не берём и не храним: для фильтра нужно только название.
+nonisolated struct Customer: Codable, Hashable, Sendable {
+    let id: Int
+    let title: String
+}
+
+nonisolated extension Customer {
+    private enum CodingKeys: String, CodingKey {
+        case id, title
+    }
+
+    /// Пустое название не должно ломать разбор всего списка объектов — подставляем номер.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        let text = (try? container.decodeIfPresent(String.self, forKey: .title)) ?? nil
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        title = trimmed.isEmpty ? "Потребитель № \(id)" : trimmed
+    }
 }
 
 /// Тело ответа сервера с ошибкой (в swagger — ResponseParameters).

@@ -8,8 +8,9 @@ import Foundation
 /// Что получено с сервера (уже отсортировано и сохранено в кэш).
 /// У объектов заодно — имя и права пользователя (nil — запрос не удался, оставить прежние).
 nonisolated enum ListDownloadResult: Sendable {
-    case nodes([Node], groups: [NodeGroup], currentUser: CurrentUser?, savedAt: Date, responseBytes: Int)
-    case measurePoints([MeasurePoint], savedAt: Date, responseBytes: Int)
+    case nodes([Node], groups: [NodeGroup], customers: [Customer], currentUser: CurrentUser?, savedAt: Date,
+               responseBytes: Int)
+    case measurePoints([MeasurePoint], customers: [Customer], savedAt: Date, responseBytes: Int)
     case equipment([Equipment], savedAt: Date, responseBytes: Int)
 }
 
@@ -42,9 +43,9 @@ nonisolated enum ListRefresher {
             // Не получилось сохранить на телефон (например, нет места) — не беда:
             // список всё равно покажем, просто после перезапуска его не будет.
             try? await cacheStore.saveNodes(sorted, savedAt: savedAt, responseBytes: result.responseBytes,
-                                            groups: groups)
-            return .nodes(sorted, groups: groups, currentUser: currentUser, savedAt: savedAt,
-                          responseBytes: result.responseBytes)
+                                            groups: groups, customers: result.customers)
+            return .nodes(sorted, groups: groups, customers: result.customers, currentUser: currentUser,
+                          savedAt: savedAt, responseBytes: result.responseBytes)
 
         case .measurePoints:
             let result = try await client.fetchMeasurePoints(token: token, onProgress: onProgress)
@@ -53,8 +54,10 @@ nonisolated enum ListRefresher {
                 first.fullTitle.localizedStandardCompare(second.fullTitle) == .orderedAscending
             }
             let savedAt = Date()
-            try? await cacheStore.saveMeasurePoints(sorted, savedAt: savedAt, responseBytes: result.responseBytes)
-            return .measurePoints(sorted, savedAt: savedAt, responseBytes: result.responseBytes)
+            try? await cacheStore.saveMeasurePoints(sorted, savedAt: savedAt, responseBytes: result.responseBytes,
+                                                    customers: result.customers)
+            return .measurePoints(sorted, customers: result.customers, savedAt: savedAt,
+                                  responseBytes: result.responseBytes)
 
         case .equipment:
             // Список уже отсортирован при разборе ответа (Equipment.makeList).

@@ -125,6 +125,46 @@ final class DataStoreTests: XCTestCase {
 
     // MARK: - Кэш
 
+    /// Фильтр «Потребитель» в обе стороны: потребитель объекта — у его точек, потребитель точки — у её объекта.
+    func testCustomerFilterWorksBothWays() async throws {
+        let cache = CacheStore(directory: cacheDirectory)
+        // Объект 1 — потребитель указан у объекта; объект 2 — у одной из точек.
+        try await cache.saveNodes([
+            Node(id: 1, title: "Котельная", address: "", type: "Node", state: "Normal", customerId: 100),
+            Node(id: 2, title: "Дом", address: "", type: "House", state: "Normal")
+        ], customers: [Customer(id: 100, title: "ТСЖ Ромашка")])
+        try await cache.saveMeasurePoints([
+            MeasurePoint(id: 10, title: "Отопление", fullTitle: "", parentTitle: nil, address: nil, nodeId: 1,
+                         systemType: "Heat", resourceKind: nil, state: "Normal"),
+            MeasurePoint(id: 20, title: "ХВС", fullTitle: "", parentTitle: nil, address: nil, nodeId: 2,
+                         systemType: "ColdWater", resourceKind: nil, state: "Normal", customerId: 200),
+            MeasurePoint(id: 21, title: "ГВС", fullTitle: "", parentTitle: nil, address: nil, nodeId: 2,
+                         systemType: "HotWater", resourceKind: nil, state: "Normal")
+        ], customers: [Customer(id: 200, title: "ИП Иванов")])
+
+        let store = DataStore(session: try makeSession())
+        await store.start()
+        XCTAssertEqual(store.customers.map(\.title), ["ИП Иванов", "ТСЖ Ромашка"])
+
+        var nodeFilter = NodeFilter()
+        nodeFilter.customerId = 200
+        let nodes = store.nodes.filter {
+            nodeFilter.matches($0, groupMembers: nil, customerIds: store.customerIds(ofNode: $0))
+        }
+        // Объект находится по потребителю своей точки.
+        XCTAssertEqual(nodes.map(\.id), [2])
+
+        var pointFilter = PointFilter()
+        pointFilter.customerId = 100
+        let points = store.measurePoints.filter {
+            pointFilter.matches($0, groupMembers: nil, customerIds: store.customerIds(ofPoint: $0))
+        }
+        // Точка находится по потребителю своего объекта.
+        XCTAssertEqual(points.map(\.id), [10])
+        // У точки 21 потребителя нет ни у неё, ни у объекта (он указан только у соседней точки).
+        XCTAssertEqual(store.customerIds(ofPoint: store.measurePoint(withId: 21)!), [])
+    }
+
     func testStartShowsCacheAndClearCacheEmptiesIt() async throws {
         let cache = CacheStore(directory: cacheDirectory)
         let savedAt = Date(timeIntervalSince1970: 1_790_000_000)

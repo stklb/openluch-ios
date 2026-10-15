@@ -50,7 +50,7 @@ final class DemoServerTests: XCTestCase {
 
         // Объекты учёта — и запоминаем, как шёл прогресс.
         let progressLog = ProgressLog()
-        let (nodes, nodesBytes) = try await client.fetchNodes(token: token, onProgress: { progress in
+        let (nodes, _, nodesBytes) = try await client.fetchNodes(token: token, onProgress: { progress in
             progressLog.add(progress)
         })
         XCTAssertFalse(nodes.isEmpty)
@@ -76,7 +76,7 @@ final class DemoServerTests: XCTestCase {
         XCTAssertNil(electricityUnits.unitsByCategory["Temperature"])
 
         // Точки учёта: только обычные (квартирные сервер не присылает благодаря type=Regular).
-        let (points, _) = try await client.fetchMeasurePoints(token: token)
+        let (points, _, _) = try await client.fetchMeasurePoints(token: token)
         XCTAssertFalse(points.isEmpty)
         let nodeIds = Set(nodes.map { $0.id })
         for point in points {
@@ -120,7 +120,7 @@ final class DemoServerTests: XCTestCase {
         }
         let result = try await ListRefresher.downloadAndSave(.nodes, client: client, token: token,
                                                              cacheStore: CacheStore(directory: cacheDirectory))
-        guard case .nodes(_, _, let userWithNodes, _, _) = result else {
+        guard case .nodes(_, _, _, let userWithNodes, _, _) = result else {
             return XCTFail("ожидался список объектов")
         }
         XCTAssertEqual(userWithNodes, user)
@@ -161,13 +161,11 @@ final class DemoServerTests: XCTestCase {
         try await session.logIn(address: try ServerAddress(parsing: "https://my.lers.ru"),
                                 login: "demo", password: "demo", onProgress: { _ in })
 
-        // Сразу после входа приложение само запрашивает имя и права (без участия «Настроек»).
-        for _ in 0..<50 where session.displayName == nil {
-            try await Task.sleep(for: .milliseconds(200))
-        }
-        XCTAssertEqual(session.displayName, "Гостевой пользователь")
+        // Отдельного запроса имени при входе нет — имя и права приходят вместе со списком объектов.
+        XCTAssertNil(session.displayName)
 
         await BackgroundRefresh.run(session: session, defaults: defaults, connection: .wifi)
+        XCTAssertEqual(session.displayName, "Гостевой пользователь")
 
         let nodes = await session.cacheStore.loadNodes()
         XCTAssertFalse(nodes?.nodes.isEmpty ?? true)

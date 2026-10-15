@@ -123,7 +123,7 @@ struct MeasurePointsListView: View {
         }
         let groupMembers = dataStore.nodeIds(inGroup: current.groupId)
         return dataStore.measurePoints.filter { point in
-            if !current.matches(point, groupMembers: groupMembers) {
+            if !current.matches(point, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofPoint: point)) {
                 return false
             }
             if isSearching {
@@ -138,7 +138,9 @@ struct MeasurePointsListView: View {
         var changed = filter.wrappedValue
         change(&changed)
         let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
-        return dataStore.measurePoints.filter { changed.matches($0, groupMembers: groupMembers) }.count
+        return dataStore.measurePoints.filter {
+            changed.matches($0, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofPoint: $0))
+        }.count
     }
 
     /// Подпись системы по коду сервера («Heat» → «Теплоснабжение»).
@@ -166,6 +168,9 @@ struct MeasurePointsListView: View {
         if let commLink = current.commLink {
             parts.append(MeasurePointsListView.commLinkTitle(commLink))
         }
+        if let customer = dataStore.customers.first(where: { $0.id == current.customerId }) {
+            parts.append(customer.title)
+        }
         return parts.joined(separator: " · ")
     }
 
@@ -179,6 +184,11 @@ struct MeasurePointsListView: View {
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
                                                 set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
                     count { $0.groupId = value.flatMap { Int($0) } }
+                }
+                FilterPicker(title: "Потребитель", options: FilterOption.customers(dataStore.customers),
+                             selection: Binding(get: { filter.wrappedValue.customerId.map(String.init) },
+                                                set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } })) { value in
+                    count { $0.customerId = value.flatMap { Int($0) } }
                 }
                 FilterPicker(title: "Тип связи",
                              options: FilterOption.distinct(dataStore.measurePoints, value: { $0.commLinkType ?? "" },

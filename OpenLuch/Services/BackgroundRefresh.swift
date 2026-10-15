@@ -169,7 +169,7 @@ nonisolated enum BackgroundRefresh {
                                                                      cacheStore: session.cacheStore,
                                                                      previousGroups: previousGroups)
                 // Вместе с объектами пришли имя и права пользователя — сохраняем.
-                if case .nodes(_, _, let currentUser?, _, _) = result {
+                if case .nodes(_, _, _, let currentUser?, _, _) = result {
                     session.updateCurrentUser(currentUser)
                 }
                 savedKinds.append(kind)

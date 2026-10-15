@@ -153,20 +153,23 @@ nonisolated final class APIClient: Sendable {
         }
     }
 
-    /// Список объектов учёта: GET /api/v1/Core/Nodes без параметров.
-    /// Без параметров — самый лёгкий вариант (все дополнительные данные выключены, см. docs/api-notes.md).
-    /// Возвращает объекты и размер ответа в байтах (его запоминаем, чтобы в следующий раз
+    /// Список объектов учёта: GET /api/v1/Core/Nodes?getCustomers=true.
+    /// Из дополнительных данных — только потребители (для фильтра «Потребитель»): сервер присылает
+    /// лишь тех, на кого ссылаются объекты, ~0,3 КБ на потребителя (см. docs/api-notes.md).
+    /// Возвращает объекты, потребителей и размер ответа в байтах (его запоминаем, чтобы в следующий раз
     /// заранее показать, сколько придётся скачать).
     @concurrent
     func fetchNodes(token: String,
                     onProgress: @escaping @Sendable (DownloadProgress) -> Void = { _ in })
-    async throws -> (nodes: [Node], responseBytes: Int) {
-        let request = makeAuthorizedGETRequest(path: "api/v1/Core/Nodes", queryItems: [], token: token)
+    async throws -> (nodes: [Node], customers: [Customer], responseBytes: Int) {
+        let request = makeAuthorizedGETRequest(path: "api/v1/Core/Nodes",
+                                               queryItems: [URLQueryItem(name: "getCustomers", value: "true")],
+                                               token: token)
         let data = try await download(request, onProgress: onProgress)
 
         do {
             let response = try ServerDateParser.makeDecoder().decode(NodeListResponse.self, from: data)
-            return (nodes: response.nodes ?? [], responseBytes: data.count)
+            return (nodes: response.nodes ?? [], customers: response.customers ?? [], responseBytes: data.count)
         } catch {
             throw APIError.invalidResponse
         }
@@ -199,23 +202,26 @@ nonisolated final class APIClient: Sendable {
         }
     }
 
-    /// Список обычных точек учёта: GET /api/v1/Core/MeasurePoints?type=Regular.
+    /// Список обычных точек учёта: GET /api/v1/Core/MeasurePoints?type=Regular&getCustomers=true.
     /// type=Regular — сервер не присылает квартирные точки (их в приложении нет, см. PLAN.md).
-    /// Возвращает точки и размер ответа в байтах (как fetchNodes).
+    /// getCustomers=true — потребители, указанные у самих точек (как у fetchNodes).
+    /// Возвращает точки, потребителей и размер ответа в байтах (как fetchNodes).
     @concurrent
     func fetchMeasurePoints(token: String,
                             onProgress: @escaping @Sendable (DownloadProgress) -> Void = { _ in })
-    async throws -> (measurePoints: [MeasurePoint], responseBytes: Int) {
+    async throws -> (measurePoints: [MeasurePoint], customers: [Customer], responseBytes: Int) {
         let request = makeAuthorizedGETRequest(
             path: "api/v1/Core/MeasurePoints",
-            queryItems: [URLQueryItem(name: "type", value: "Regular")],
+            queryItems: [URLQueryItem(name: "type", value: "Regular"),
+                         URLQueryItem(name: "getCustomers", value: "true")],
             token: token
         )
         let data = try await download(request, onProgress: onProgress)
 
         do {
             let response = try ServerDateParser.makeDecoder().decode(MeasurePointListResponse.self, from: data)
-            return (measurePoints: response.measurePoints ?? [], responseBytes: data.count)
+            return (measurePoints: response.measurePoints ?? [], customers: response.customers ?? [],
+                    responseBytes: data.count)
         } catch {
             throw APIError.invalidResponse
         }

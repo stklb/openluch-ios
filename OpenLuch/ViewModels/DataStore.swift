@@ -61,6 +61,8 @@ final class DataStore {
     private(set) var nodesState: ListLoadState = .idle
     /// Группы объектов (для выбора группы во вкладке «Объекты»). Пусто — групп нет или ещё не загружены.
     private(set) var nodeGroups: [NodeGroup] = []
+    /// Потребители, указанные у объектов или точек, по названию — варианты фильтра «Потребитель».
+    private(set) var customers: [Customer] = []
 
     /// Точки учёта, отсортированные по полному названию.
     private(set) var measurePoints: [MeasurePoint] = []
@@ -83,6 +85,14 @@ final class DataStore {
 
     private let session: AppSession
     private let cacheStore: CacheStore
+
+    /// Потребители из ответов сервера: объектов и точек (сервер присылает их вместе со списками).
+    private var nodeCustomers: [Customer] = []
+    private var pointCustomers: [Customer] = []
+    /// Для фильтра «Потребитель» в обе стороны (см. rebuildCustomerIndex):
+    /// объект → потребители, указанные у него и у его точек; объект → его собственный потребитель.
+    private var customerIdsByNode: [Int: Set<Int>] = [:]
+    private var nodeCustomerById: [Int: Int] = [:]
 
     /// Размер ответа сервера при последней загрузке — для оценки «≈ X МБ».
     private var nodesResponseBytes: Int?
@@ -161,12 +171,15 @@ final class DataStore {
             nodesUpdatedAt = cached.savedAt
             nodesResponseBytes = cached.responseBytes
             nodeGroups = cached.groups ?? []
+            nodeCustomers = cached.customers ?? []
         }
         if let cached = await cacheStore.loadMeasurePoints() {
             measurePoints = cached.measurePoints
             measurePointsUpdatedAt = cached.savedAt
             measurePointsResponseBytes = cached.responseBytes
+            pointCustomers = cached.customers ?? []
         }
+        rebuildCustomerIndex()
         if let cached = await cacheStore.loadEquipment() {
             equipment = cached.equipment
             equipmentUpdatedAt = cached.savedAt
@@ -301,6 +314,9 @@ final class DataStore {
         equipmentResponseBytes = nil
         equipmentLastAttemptAt = nil
         equipmentState = .idle
+        nodeCustomers = []
+        pointCustomers = []
+        rebuildCustomerIndex()
         cacheSizeBytes = await cacheStore.totalSizeInBytes()
 
         isClearingCache = false
@@ -458,18 +474,22 @@ final class DataStore {
     /// Показать на экране список, полученный с сервера.
     private func apply(_ result: ListDownloadResult) {
         switch result {
-        case .nodes(let newNodes, let groups, let currentUser, let savedAt, let responseBytes):
+        case .nodes(let newNodes, let groups, let newCustomers, let currentUser, let savedAt, let responseBytes):
             if let currentUser {
                 session.updateCurrentUser(currentUser)
             }
             nodes = newNodes
             nodeGroups = groups
+            nodeCustomers = newCustomers
             nodesUpdatedAt = savedAt
             nodesResponseBytes = responseBytes
-        case .measurePoints(let newPoints, let savedAt, let responseBytes):
+            rebuildCustomerIndex()
+        case .measurePoints(let newPoints, let newCustomers, let savedAt, let responseBytes):
             measurePoints = newPoints
+            pointCustomers = newCustomers
             measurePointsUpdatedAt = savedAt
             measurePointsResponseBytes = responseBytes
+            rebuildCustomerIndex()
         case .equipment(let newEquipment, let savedAt, let responseBytes):
             equipment = newEquipment
             equipmentUpdatedAt = savedAt
@@ -573,6 +593,63 @@ final class DataStore {
             return nil
         }
         return Set(group.memberIds)
+    }
+
+    // MARK: - Потребители (фильтр в обе стороны)
+
+    // В ЛЭРС потребитель указывается либо у объекта, либо у его точек (сервер не даёт указать в обоих
+    // местах сразу). Чтобы фильтр «Потребитель» работал на обеих вкладках, объект подходит, если
+    // потребитель указан у него или у любой его точки, а точка — если у неё или у её объекта.
+    // Если вдруг указан в обоих местах — подходит по любому (решение владельца 2026-10-16).
+
+    /// Потребители объекта: свой и всех его точек.
+    func customerIds(ofNode node: Node) -> Set<Int> {
+        return customerIdsByNode[node.id] ?? []
+    }
+
+    /// Потребители точки: свой и её объекта.
+    func customerIds(ofPoint point: MeasurePoint) -> Set<Int> {
+        var ids = Set<Int>()
+        if let customerId = point.customerId {
+            ids.insert(customerId)
+        }
+        if let nodeId = point.nodeId, let nodeCustomer = nodeCustomerById[nodeId] {
+            ids.insert(nodeCustomer)
+        }
+        return ids
+    }
+
+    /// Пересчитать связь «объект ↔ потребители» после загрузки или чтения списков: один проход
+    /// по объектам и точкам, чтобы фильтр не перебирал все точки для каждого объекта.
+    private func rebuildCustomerIndex() {
+        var byNode: [Int: Set<Int>] = [:]
+        var ownByNode: [Int: Int] = [:]
+        var usedIds = Set<Int>()
+        for node in nodes {
+            if let customerId = node.customerId {
+                byNode[node.id, default: []].insert(customerId)
+                ownByNode[node.id] = customerId
+                usedIds.insert(customerId)
+            }
+        }
+        for point in measurePoints {
+            if let customerId = point.customerId {
+                usedIds.insert(customerId)
+                if let nodeId = point.nodeId {
+                    byNode[nodeId, default: []].insert(customerId)
+                }
+            }
+        }
+        customerIdsByNode = byNode
+        nodeCustomerById = ownByNode
+
+        var titles: [Int: Customer] = [:]
+        for customer in nodeCustomers + pointCustomers {
+            titles[customer.id] = customer
+        }
+        customers = usedIds
+            .map { titles[$0] ?? Customer(id: $0, title: "Потребитель № \($0)") }
+            .sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     }
 
     /// Точка учёта по номеру — из кэша.

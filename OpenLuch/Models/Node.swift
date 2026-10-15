@@ -34,12 +34,16 @@ nonisolated struct Node: Codable, Identifiable, Hashable, Sendable {
     let compositeState: NodeCompositeState?
     /// Координаты — для кнопки «Открыть в Картах».
     let geoLocation: GeoLocation?
+    /// Потребитель (Customer.id) — для фильтра «Потребитель». Название — в списке потребителей
+    /// (приходит вместе со списком объектов, см. DataStore.customers). nil — не указан.
+    let customerId: Int?
 
     /// Создание объекта вручную (в тестах). Сервер присылает объекты в JSON — их создаёт JSONDecoder.
     init(id: Int, title: String, address: String, type: String?, state: String?,
          number: Int? = nil, comment: String? = nil, responsibleName: String? = nil,
          currentSeason: String? = nil,
-         compositeState: NodeCompositeState? = nil, geoLocation: GeoLocation? = nil) {
+         compositeState: NodeCompositeState? = nil, geoLocation: GeoLocation? = nil,
+         customerId: Int? = nil) {
         self.id = id
         self.title = title
         self.address = address
@@ -51,6 +55,7 @@ nonisolated struct Node: Codable, Identifiable, Hashable, Sendable {
         self.currentSeason = currentSeason
         self.compositeState = compositeState
         self.geoLocation = geoLocation
+        self.customerId = customerId
     }
 
     var kind: NodeKind {

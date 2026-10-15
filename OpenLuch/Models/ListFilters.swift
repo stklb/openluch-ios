@@ -85,10 +85,16 @@ nonisolated struct NodeFilter: SavedFilter {
     var kind: String?
     /// Сезон (Node.currentSeason: "Summer", "Winter").
     var season: String?
+    /// Потребитель (Customer.id) — указанный у объекта или у любой его точки.
+    var customerId: Int?
 
     /// `groupMembers` — объекты выбранной группы (nil — группа не выбрана или удалена на сервере).
-    func matches(_ node: Node, groupMembers: Set<Int>?) -> Bool {
+    /// `customerIds` — потребители объекта и его точек (DataStore.customerIds(ofNode:)).
+    func matches(_ node: Node, groupMembers: Set<Int>?, customerIds: Set<Int> = []) -> Bool {
         if let groupMembers, !groupMembers.contains(node.id) {
+            return false
+        }
+        if let customerId, !customerIds.contains(customerId) {
             return false
         }
         if let kind, (node.type ?? "") != kind {
@@ -111,9 +117,15 @@ nonisolated struct PointFilter: SavedFilter {
     var groupId: Int?
     /// Тип связи (MeasurePoint.commLinkType: "Gprs", "Ip"…).
     var commLink: String?
+    /// Потребитель (Customer.id) — указанный у точки или у её объекта.
+    var customerId: Int?
 
-    func matches(_ point: MeasurePoint, groupMembers: Set<Int>?) -> Bool {
+    /// `customerIds` — потребители точки и её объекта (DataStore.customerIds(ofPoint:)).
+    func matches(_ point: MeasurePoint, groupMembers: Set<Int>?, customerIds: Set<Int> = []) -> Bool {
         if let groupMembers, !groupMembers.contains(point.nodeId ?? -1) {
+            return false
+        }
+        if let customerId, !customerIds.contains(customerId) {
             return false
         }
         if !systems.isEmpty && !systems.contains(point.systemType ?? "") {
