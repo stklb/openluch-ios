@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import UIKit
 
 // Экран «Графики и архив» точки учёта: часовые, суточные и месячные данные на графиках и в таблице.
 // Открывается из вкладки «Данные» карточки точки. Данные и их загрузка — в PointArchiveModel
@@ -14,6 +15,7 @@ import Charts
 //   • на экране — один экран данных (сутки, 2 недели, год), остальное листается. Границы графика
 //     заданы сразу и с запасом (ArchiveGrid); ещё не загруженные участки — серые, и как только график
 //     остановился, загружается порция, которую видно (PointArchiveModel.show);
+//   • значок календаря вверху справа — перейти к дате, не листая (день становится у левого края);
 //   • над графиком — суммы (для температур и давлений — средние) видимой части; касание графика
 //     показывает значения за этот час, день или месяц, повторное касание снимает выбор;
 //   • неполный период (текущий месяц) — обычной линией (пунктир не нужен — решение владельца 2026-10-14),
@@ -35,6 +37,11 @@ struct PointArchiveView: View {
     @State private var scrollStart = Date()
     /// Выбранный касанием час, день или месяц — показываем его значения.
     @State private var selectedDate: Date?
+    /// Открыт календарь «Перейти к дате».
+    @State private var isDatePickerShown = false
+    /// Месяц, выбранный на барабане (период «Месяцы»). Отдельно от графика: у правого края график
+    /// сдвигается не до конца, и барабан не должен отскакивать вслед за ним.
+    @State private var pickedMonth = Date()
 
     private let calendar = ArchiveDates.calendar
     private let russian = Locale(identifier: "ru_RU")
@@ -77,6 +84,35 @@ struct PointArchiveView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                }
+            }
+            // Перейти к дате, не листая график (решение владельца 2026-10-15).
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Перейти к дате", systemImage: "calendar") {
+                    isDatePickerShown = true
+                }
+                .popover(isPresented: $isDatePickerShown) {
+                    Group {
+                        if period == .months {
+                            // Месяцы: день не нужен — барабан «месяц, год». Окошко не закрывается
+                            // после прокрутки (месяц и год крутят по очереди), график сдвигается сразу.
+                            MonthYearPicker(date: monthJumpDate, range: grid.start...Date(), calendar: calendar)
+                                // Барабан открывается на левом крае графика. Ставим здесь, а не в кнопке:
+                                // там положение графика читалось устаревшим (проверено 2026-10-15).
+                                .onAppear {
+                                    pickedMonth = scrollStart
+                                }
+                        } else {
+                            DatePicker("Перейти к дате", selection: jumpDate, in: grid.start...Date(),
+                                       displayedComponents: .date)
+                                .datePickerStyle(.graphical)
+                                .environment(\.locale, russian)
+                        }
+                    }
+                    .frame(width: 320)
+                    .padding()
+                    // На iPhone — тоже окошко у кнопки, а не лист на весь экран.
+                    .presentationCompactAdaptation(.popover)
                 }
             }
         }
@@ -164,6 +200,32 @@ struct PointArchiveView: View {
     /// Показать самые свежие данные (правый край графика).
     private func scrollToEnd() {
         scrollStart = grid.end.addingTimeInterval(-period.visibleSeconds)
+    }
+
+    /// Календарь «Перейти к дате»: показывает левый край графика, выбор дня перелистывает график так,
+    /// чтобы этот день (час 00:00, месяц) был у левого края, и закрывает календарь.
+    /// У правого края архива сдвигаемся не дальше последнего экрана — пустоты справа не будет.
+    private var jumpDate: Binding<Date> {
+        Binding(get: { scrollStart },
+                set: { date in
+                    jump(to: date)
+                    isDatePickerShown = false
+                })
+    }
+
+    /// Барабан «месяц, год» (период «Месяцы»): сдвигает график, окошко остаётся открытым.
+    private var monthJumpDate: Binding<Date> {
+        Binding(get: { pickedMonth },
+                set: { date in
+                    pickedMonth = date
+                    jump(to: date)
+                })
+    }
+
+    private func jump(to date: Date) {
+        let start = period.start(of: date, calendar: calendar)
+        let lastScreenStart = grid.end.addingTimeInterval(-period.visibleSeconds)
+        scrollStart = max(grid.start, min(start, lastScreenStart))
     }
 
     /// Показать экран, который заканчивается самой свежей записью.
@@ -768,6 +830,60 @@ enum ArchiveColors {
             return .teal
         }
         return palette[index % palette.count]
+    }
+}
+
+/// Выбор месяца и года без дня — системный барабан UIKit (`UIDatePicker` в режиме `.yearAndMonth`, iOS 17.4+).
+/// В SwiftUI-версии `DatePicker` такого режима нет (проверено по SDK iOS 27, 2026-10-15), поэтому системный
+/// элемент подключён через `UIViewRepresentable` — официальный способ Apple вставить элемент UIKit в SwiftUI.
+private struct MonthYearPicker: UIViewRepresentable {
+    @Binding var date: Date
+    let range: ClosedRange<Date>
+    let calendar: Calendar
+
+    func makeUIView(context: Context) -> UIDatePicker {
+        let picker = UIDatePicker()
+        picker.datePickerMode = .yearAndMonth
+        picker.preferredDatePickerStyle = .wheels
+        picker.locale = Locale(identifier: "ru_RU")
+        picker.calendar = calendar
+        picker.timeZone = calendar.timeZone
+        picker.minimumDate = range.lowerBound
+        picker.maximumDate = range.upperBound
+        picker.date = date
+        // UIKit сообщает о прокрутке барабана не через Binding, а вызовом метода (target-action).
+        picker.addTarget(context.coordinator, action: #selector(Coordinator.valueChanged(_:)), for: .valueChanged)
+        return picker
+    }
+
+    /// SwiftUI вызывает это при каждом изменении данных экрана — передаём их в системный элемент.
+    func updateUIView(_ picker: UIDatePicker, context: Context) {
+        context.coordinator.date = $date
+        picker.minimumDate = range.lowerBound
+        picker.maximumDate = range.upperBound
+        if !calendar.isDate(picker.date, equalTo: date, toGranularity: .month) {
+            picker.setDate(date, animated: false)
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(date: $date)
+    }
+
+    /// Получатель сообщений от UIDatePicker: выбранную дату передаёт обратно в SwiftUI.
+    final class Coordinator: NSObject {
+        var date: Binding<Date>
+
+        // Без этого на iOS 26 приложение падает при удалении объекта из памяти (см. CLAUDE.md).
+        nonisolated deinit {}
+
+        init(date: Binding<Date>) {
+            self.date = date
+        }
+
+        @objc func valueChanged(_ picker: UIDatePicker) {
+            date.wrappedValue = picker.date
+        }
     }
 }
 
