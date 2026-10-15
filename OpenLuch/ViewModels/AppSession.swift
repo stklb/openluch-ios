@@ -16,8 +16,8 @@ final class AppSession {
     /// Логин последнего входа (остаётся и после выхода — для экрана входа).
     private(set) var savedLogin: String
     /// Имя и права вошедшего пользователя (CurrentUser).
-    /// nil — не получены. Запрашиваются сразу после входа (loadCurrentUser) и потом обновляются
-    /// вместе со списком объектов — автоматически, в фоне и кнопкой «Обновить» (ListRefresher).
+    /// nil — не получены. Приходят вместе со списком объектов (ListRefresher) — после входа
+    /// и при каждом его обновлении, в том числе в фоне. Отдельного запроса при входе нет.
     private(set) var currentUser: CurrentUser?
 
     /// Отображаемое имя пользователя («Гостевой пользователь») — для «Настроек».
@@ -93,43 +93,22 @@ final class AppSession {
             throw APIError.other(message: error.localizedDescription)
         }
 
-        // Если вошли на другой сервер или под другим логином — старый кэш чужой, удаляем его.
-        // (Обычно кэш и так пуст: он стирается при выходе.)
+        // Если вошли на другой сервер или под другим логином — старый кэш, имя и права чужие, удаляем.
+        // Кэш пуст — значит, список объектов загрузится сразу, а с ним придут новые имя и права
+        // (отдельный запрос Login/Current при входе не нужен). Тот же пользователь — оставляем прежние:
+        // кэш мог сохраниться («Сессия истекла»), и тогда объекты не перезагрузятся сразу.
         if address != serverAddress || login != savedLogin {
             try? await cacheStore.clear()
+            settingsStore.saveCurrentUser(nil)
+            currentUser = nil
         }
 
         settingsStore.saveServerAddress(address)
         settingsStore.saveLogin(login)
-        // Имя и права прошлого входа могли принадлежать другому пользователю — получим заново.
-        settingsStore.saveCurrentUser(nil)
-        currentUser = nil
         serverAddress = address
         savedLogin = login
         logoutReason = nil
         token = newToken
-
-        // Имя и права — отдельным маленьким запросом, не задерживая вход:
-        // экран входа уже сменился основным, а имя и права применятся, когда придут.
-        Task {
-            await loadCurrentUser()
-        }
-    }
-
-    /// Получить имя и права пользователя (один маленький запрос, ~1,8 КБ) — только после входа.
-    /// Ошибку не показываем: без имени «Настройки» покажут только логин, а без прав
-    /// всё показывается, как раньше (до следующего входа).
-    private func loadCurrentUser() async {
-        guard let client = makeAPIClient(), let token else {
-            return
-        }
-        guard let user = try? await client.fetchCurrentUser(token: token) else {
-            return
-        }
-        // Пока шёл запрос, пользователь мог выйти — тогда ничего не сохраняем.
-        if self.token == token {
-            updateCurrentUser(user)
-        }
     }
 
     /// Сохранить свежие имя и права пользователя (после входа или вместе со списком объектов).
