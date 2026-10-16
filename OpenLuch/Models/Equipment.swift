@@ -191,7 +191,9 @@ nonisolated struct Equipment: Codable, Identifiable, Hashable, Sendable {
                                                    modemEquipmentId: connection.commDeviceEquipmentId,
                                                    modemTitle: modemTitle,
                                                    internetHost: nonEmpty(connection.internetHost),
-                                                   internetPort: connection.internetPort))
+                                                   internetPort: connection.internetPort,
+                                                   dialNumber: nonEmpty(connection.dialNumber),
+                                                   callType: connection.gprsCallType))
         }
 
         // Межповерочный интервал 0 — «не задан».
@@ -329,8 +331,10 @@ nonisolated struct EquipmentDetails: Codable, Hashable, Sendable {
     }
 }
 
-/// Одно подключение для опроса прибора: канал связи, модем (если опрос идёт через модем)
-/// и IP-адрес с портом (для канала Ethernet / IP). Телефонные номера сознательно не сохраняем.
+/// Одно подключение для опроса прибора: канал связи, модем (если опрос идёт через модем),
+/// номер SIM (GPRS, CSD) и способ вызова модема, IP-адрес с портом (для канала Ethernet / IP).
+/// Номера SIM храним с 2026-10-16 (решение владельца: звонок и SMS из вкладки «Связь»).
+/// Пароль модема и текст SMS вызова сервер тоже присылает — их сознательно НЕ берём.
 nonisolated struct EquipmentConnection: Codable, Hashable, Sendable {
     /// Канал связи строкой: "Gprs", "Gsm", "Ip"… См. MeasurePoint.commLinkTitle(for:).
     let commLinkType: String?
@@ -344,6 +348,35 @@ nonisolated struct EquipmentConnection: Codable, Hashable, Sendable {
     var internetHost: String? = nil
     /// TCP-порт для канала Ethernet / IP, например 4001.
     var internetPort: Int? = nil
+    /// Номер телефона SIM (для GPRS и CSD), например «+79144216556». nil — не указан или кэш прошлой версии.
+    var dialNumber: String? = nil
+    /// Как сервер ЛЭРС «будит» GPRS-модем: "Voice", "Csd", "Sms"; "None" и nil — не задано. См. `callTypeTitle`.
+    var callType: String? = nil
+
+    /// Способ вызова модема словами — или nil, если не задан.
+    var callTypeTitle: String? {
+        switch callType {
+        case "Voice":
+            return "Голосовой звонок"
+        case "Csd":
+            return "Звонок CSD"
+        case "Sms":
+            return "SMS"
+        default:
+            return nil
+        }
+    }
+
+    /// Страница настройки прибора Ethernet / IP в браузере: http://адрес (порт 80, только http —
+    /// встроенные веб-страницы преобразователей работают так). nil — канал не Ethernet / IP или адреса нет.
+    var setupPageURL: URL? {
+        guard commLinkType == "Ip", let internetHost else {
+            return nil
+        }
+        // IPv6-адрес в ссылке пишется в квадратных скобках.
+        let host = internetHost.contains(":") ? "[\(internetHost)]" : internetHost
+        return URL(string: "http://\(host)")
+    }
 
     /// Адрес с портом для показа: «192.168.1.222:4001», «teplo.example.ru:4001».
     /// Только для канала Ethernet / IP; nil, если канал другой или адреса нет.
@@ -444,6 +477,9 @@ nonisolated struct PollConnectionResponse: Decodable, Sendable {
     /// IP-адрес и TCP-порт прибора для канала Ethernet / IP.
     let internetHost: String?
     let internetPort: Int?
+    /// Номер телефона SIM и способ вызова GPRS-модема.
+    let dialNumber: String?
+    let gprsCallType: String?
 }
 
 /// Модем, через который опрашивается прибор.

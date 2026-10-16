@@ -218,12 +218,32 @@ struct EquipmentDetailView: View {
 
 /// Одно подключение прибора: «GPRS — ЛЭРС GSM Lite № 10084» (со ссылкой на модем, если он есть
 /// в справочнике). Используется в карточке оборудования и на вкладке «Связь» карточки точки.
+/// Ниже — дополнительные строки (решение владельца 2026-10-16): телефон SIM с кнопками «Позвонить»
+/// и «SMS» (SMS открывается пустым — текст вызова модема не подставляем), способ вызова модема и
+/// для Ethernet / IP — ссылка на страницу настройки прибора в браузере.
 struct EquipmentConnectionRow: View {
     @Environment(DataStore.self) private var dataStore
 
     let connection: EquipmentConnection
 
     var body: some View {
+        mainRow
+        if let dialNumber = connection.dialNumber {
+            PhoneNumberRow(number: dialNumber)
+        }
+        if let callTypeTitle = connection.callTypeTitle {
+            LabeledContent("Вызов модема", value: callTypeTitle)
+        }
+        if let setupPageURL = connection.setupPageURL {
+            // Адрес обычно внутренний (192.168.…) — откроется, только если телефон в той же сети или в VPN.
+            Link(destination: setupPageURL) {
+                Label("Открыть страницу настройки", systemImage: "safari")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var mainRow: some View {
         let linkTitle = MeasurePoint.commLinkTitle(for: connection.commLinkType) ?? "Канал связи не указан"
 
         if let modemId = connection.modemEquipmentId, let modem = dataStore.equipment(withId: modemId) {
@@ -254,6 +274,53 @@ struct EquipmentConnectionRow: View {
         } else {
             CommLinkLabel(commLinkType: connection.commLinkType, title: linkTitle)
         }
+    }
+}
+
+/// Телефон SIM: номер (можно скопировать) и справа кнопки «Позвонить» и «SMS» — открывают «Телефон»
+/// и «Сообщения» (позвонить и отправить пользователь решает сам). Где звонить нельзя (Mac, iPad без
+/// iPhone рядом) — только номер: iOS сама сообщает, может ли открыть такие ссылки (canOpenURL; схемы tel и sms
+/// перечислены в Info.plist — без этого iOS всегда отвечает «нет»).
+private struct PhoneNumberRow: View {
+    let number: String
+
+    /// Могут ли «Телефон» и «Сообщения» открыться на этом устройстве (проверяем один раз).
+    private static let canCall = phoneURL(scheme: "tel", number: "0").map { UIApplication.shared.canOpenURL($0) } ?? false
+    private static let canSendSMS = phoneURL(scheme: "sms", number: "0").map { UIApplication.shared.canOpenURL($0) } ?? false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            LabeledContent("Телефон") {
+                Text(number)
+                    .textSelection(.enabled)
+            }
+            if PhoneNumberRow.canCall, let url = PhoneNumberRow.phoneURL(scheme: "tel", number: number) {
+                actionLink(url: url, symbol: "phone.fill", label: "Позвонить")
+            }
+            if PhoneNumberRow.canSendSMS, let url = PhoneNumberRow.phoneURL(scheme: "sms", number: number) {
+                actionLink(url: url, symbol: "message.fill", label: "Отправить SMS")
+            }
+        }
+    }
+
+    /// Кнопка-значок: зона нажатия 44×44 (минимум по правилам Apple), нажатие не уходит на всю строку.
+    private func actionLink(url: URL, symbol: String, label: String) -> some View {
+        Link(destination: url) {
+            Image(systemName: symbol)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(label)
+    }
+
+    /// «tel:+79144216556» — в ссылке только цифры и «+» (пробелы, скобки и дефисы из номера убираем).
+    static func phoneURL(scheme: String, number: String) -> URL? {
+        let digits = number.filter { $0.isNumber || $0 == "+" }
+        if digits.isEmpty {
+            return nil
+        }
+        return URL(string: "\(scheme):\(digits)")
     }
 }
 

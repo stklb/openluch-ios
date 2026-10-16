@@ -36,12 +36,17 @@
      {
       "id": 3504,
       "commLinkType": "Gsm",
+      "dialNumber": "+70000000000",
+      "gprsCallType": "None",
       "commDeviceEquipmentId": null,
       "commDevice": null
      },
      {
       "id": 3505,
       "commLinkType": "Gprs",
+      "dialNumber": "+70000000000",
+      "gprsCallType": "Sms",
+      "gprsCallSmsText": "CO",
       "commDeviceEquipmentId": 8919,
       "commDevice": {
        "id": 8919,

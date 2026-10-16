@@ -83,6 +83,25 @@ final class EquipmentTests: XCTestCase {
         XCTAssertEqual(connection("fe80::1", 4001).ipAddressLabel, "IP-адрес")
     }
 
+    /// Номер SIM и способ вызова модема берём (решение владельца 2026-10-16); для Ethernet — страница настройки.
+    func testConnectionPhoneAndSetupPage() throws {
+        let equipment = Equipment.makeList(from: try loadSample().response)
+        let device = try XCTUnwrap(equipment.first { $0.id == 56 }?.details)
+        let csd = try XCTUnwrap(device.connections.first { $0.commLinkType == "Gsm" })
+        let gprs = try XCTUnwrap(device.connections.first { $0.commLinkType == "Gprs" })
+        XCTAssertEqual(csd.dialNumber, "+70000000000")
+        XCTAssertNil(csd.callTypeTitle, "None — способ вызова не задан")
+        XCTAssertEqual(gprs.callTypeTitle, "SMS")
+        XCTAssertNil(gprs.setupPageURL)
+
+        let ethernet = EquipmentConnection(commLinkType: "Ip", modemEquipmentId: nil, modemTitle: nil,
+                                           internetHost: "192.168.1.156", internetPort: 4001)
+        XCTAssertEqual(ethernet.setupPageURL?.absoluteString, "http://192.168.1.156")
+        let ipv6 = EquipmentConnection(commLinkType: "Ip", modemEquipmentId: nil, modemTitle: nil,
+                                       internetHost: "fe80::1", internetPort: 4001)
+        XCTAssertEqual(ipv6.setupPageURL?.absoluteString, "http://[fe80::1]")
+    }
+
     func testArshinLink() throws {
         let equipment = Equipment.makeList(from: try loadSample().response)
 
