@@ -129,6 +129,9 @@ struct MeasurePointDetailView: View {
         .sheet(isPresented: $isReportFormShown) {
             if let reportsModel {
                 ReportFormView(point: point, model: reportsModel)
+                    // Окну поверх — явно те же объекты (см. MainTabView: защита от падения на iPad).
+                    .environment(session)
+                    .environment(dataStore)
             }
         }
         // Окно отчёта закрыли — список сохранённых отчётов мог измениться.

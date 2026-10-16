@@ -243,6 +243,8 @@ struct DownloadProgressView: View {
 /// Кнопка ⚙︎ слева вверху списка: открывает «Настройки» поверх экрана (стандартное окно-sheet,
 /// закрывается кнопкой «Готово» или жестом вниз). Своё состояние «открыто/закрыто» у каждого списка.
 private struct SettingsButtonModifier: ViewModifier {
+    @Environment(AppSession.self) private var session
+    @Environment(DataStore.self) private var dataStore
     @State private var isSettingsShown = false
 
     func body(content: Content) -> some View {
@@ -258,6 +260,9 @@ private struct SettingsButtonModifier: ViewModifier {
             }
             .sheet(isPresented: $isSettingsShown) {
                 SettingsView()
+                    // Окну поверх — явно те же объекты (см. MainTabView: защита от падения на iPad).
+                    .environment(session)
+                    .environment(dataStore)
             }
     }
 }
