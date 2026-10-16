@@ -37,11 +37,6 @@ struct PointArchiveView: View {
     @State private var scrollStart = Date()
     /// Выбранный касанием час, день или месяц — показываем его значения.
     @State private var selectedDate: Date?
-    /// Открыт календарь «Перейти к дате».
-    @State private var isDatePickerShown = false
-    /// Месяц, выбранный на барабане (период «Месяцы»). Отдельно от графика: у правого края график
-    /// сдвигается не до конца, и барабан не должен отскакивать вслед за ним.
-    @State private var pickedMonth = Date()
 
     private let calendar = ArchiveDates.calendar
     private let russian = Locale(identifier: "ru_RU")
@@ -88,31 +83,8 @@ struct PointArchiveView: View {
             }
             // Перейти к дате, не листая график (решение владельца 2026-10-15).
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Перейти к дате", systemImage: "calendar") {
-                    isDatePickerShown = true
-                }
-                .popover(isPresented: $isDatePickerShown) {
-                    Group {
-                        if period == .months {
-                            // Месяцы: день не нужен — барабан «месяц, год». Окошко не закрывается
-                            // после прокрутки (месяц и год крутят по очереди), график сдвигается сразу.
-                            MonthYearPicker(date: monthJumpDate, range: grid.start...Date(), calendar: calendar)
-                                // Барабан открывается на левом крае графика. Ставим здесь, а не в кнопке:
-                                // там положение графика читалось устаревшим (проверено 2026-10-15).
-                                .onAppear {
-                                    pickedMonth = scrollStart
-                                }
-                        } else {
-                            DatePicker("Перейти к дате", selection: jumpDate, in: grid.start...Date(),
-                                       displayedComponents: .date)
-                                .datePickerStyle(.graphical)
-                                .environment(\.locale, russian)
-                        }
-                    }
-                    .frame(width: 320)
-                    .padding()
-                    // На iPhone — тоже окошко у кнопки, а не лист на весь экран.
-                    .presentationCompactAdaptation(.popover)
+                DateJumpButton(period: period, earliest: grid.start, scrollStart: scrollStart) { date in
+                    jump(to: date)
                 }
             }
         }
@@ -202,26 +174,8 @@ struct PointArchiveView: View {
         scrollStart = grid.end.addingTimeInterval(-period.visibleSeconds)
     }
 
-    /// Календарь «Перейти к дате»: показывает левый край графика, выбор дня перелистывает график так,
-    /// чтобы этот день (час 00:00, месяц) был у левого края, и закрывает календарь.
+    /// Перелистать график так, чтобы день (час 00:00, месяц) был у левого края (календарь «Перейти к дате»).
     /// У правого края архива сдвигаемся не дальше последнего экрана — пустоты справа не будет.
-    private var jumpDate: Binding<Date> {
-        Binding(get: { scrollStart },
-                set: { date in
-                    jump(to: date)
-                    isDatePickerShown = false
-                })
-    }
-
-    /// Барабан «месяц, год» (период «Месяцы»): сдвигает график, окошко остаётся открытым.
-    private var monthJumpDate: Binding<Date> {
-        Binding(get: { pickedMonth },
-                set: { date in
-                    pickedMonth = date
-                    jump(to: date)
-                })
-    }
-
     private func jump(to date: Date) {
         let start = period.start(of: date, calendar: calendar)
         let lastScreenStart = grid.end.addingTimeInterval(-period.visibleSeconds)
@@ -830,6 +784,78 @@ enum ArchiveColors {
             return .teal
         }
         return palette[index % palette.count]
+    }
+}
+
+/// Кнопка «Перейти к дате» (значок календаря вверху справа) и окошко с календарём.
+///
+/// Отдельный view со своим состоянием «открыто/закрыто» — ради скорости: когда это состояние жило
+/// в PointArchiveView, каждое открытие и закрытие календаря перерисовывало весь экран (пункты меню,
+/// точки графиков, таблицу) и сами графики Swift Charts — календарь открывался с подлагиванием.
+/// Теперь при открытии и закрытии перерисовывается только эта кнопка.
+private struct DateJumpButton: View {
+    let period: ArchivePeriod
+    /// Самая ранняя дата графика (левая граница сетки) — раньше выбрать нельзя.
+    let earliest: Date
+    /// Левый край графика — на нём открывается календарь.
+    let scrollStart: Date
+    /// Перелистать график к выбранной дате.
+    let jump: (Date) -> Void
+
+    @State private var isShown = false
+    /// Месяц, выбранный на барабане (период «Месяцы»). Отдельно от графика: у правого края график
+    /// сдвигается не до конца, и барабан не должен отскакивать вслед за ним.
+    @State private var pickedMonth = Date()
+
+    private let calendar = ArchiveDates.calendar
+    private let russian = Locale(identifier: "ru_RU")
+
+    var body: some View {
+        Button("Перейти к дате", systemImage: "calendar") {
+            isShown = true
+        }
+        .popover(isPresented: $isShown) {
+            Group {
+                if period == .months {
+                    // Месяцы: день не нужен — барабан «месяц, год». Окошко не закрывается
+                    // после прокрутки (месяц и год крутят по очереди), график сдвигается сразу.
+                    MonthYearPicker(date: monthJumpDate, range: earliest...Date(), calendar: calendar)
+                        // Барабан открывается на левом крае графика. Ставим здесь, а не в кнопке:
+                        // там положение графика читалось устаревшим (проверено 2026-10-15).
+                        .onAppear {
+                            pickedMonth = scrollStart
+                        }
+                } else {
+                    DatePicker("Перейти к дате", selection: dayJumpDate, in: earliest...Date(),
+                               displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .environment(\.locale, russian)
+                }
+            }
+            .frame(width: 320)
+            .padding()
+            // На iPhone — тоже окошко у кнопки, а не лист на весь экран.
+            .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    /// Календарь (часы и сутки): показывает левый край графика; выбор дня перелистывает график
+    /// и закрывает календарь.
+    private var dayJumpDate: Binding<Date> {
+        Binding(get: { scrollStart },
+                set: { date in
+                    jump(date)
+                    isShown = false
+                })
+    }
+
+    /// Барабан «месяц, год» (период «Месяцы»): сдвигает график, окошко остаётся открытым.
+    private var monthJumpDate: Binding<Date> {
+        Binding(get: { pickedMonth },
+                set: { date in
+                    pickedMonth = date
+                    jump(date)
+                })
     }
 }
 
