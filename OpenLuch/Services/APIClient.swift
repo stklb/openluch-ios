@@ -202,6 +202,22 @@ nonisolated final class APIClient: Sendable {
         }
     }
 
+    /// Незавершённые работы на всех объектах: GET /api/v1/Core/NodeJobs?incomplete=true (~1 КБ на работу).
+    /// Фильтра по объекту в API нет (nodeId сервер молча игнорирует), поэтому берём все сразу.
+    @concurrent
+    func fetchIncompleteNodeJobs(token: String) async throws -> [NodeJob] {
+        let request = makeAuthorizedGETRequest(path: "api/v1/Core/NodeJobs",
+                                               queryItems: [URLQueryItem(name: "incomplete", value: "true")],
+                                               token: token)
+        let data = try await download(request, onProgress: { _ in })
+        do {
+            let response = try JSONDecoder().decode([NodeJobResponse].self, from: data)
+            return response.map { $0.makeJob() }
+        } catch {
+            throw APIError.invalidResponse
+        }
+    }
+
     /// Список обычных точек учёта: GET /api/v1/Core/MeasurePoints?type=Regular&getCustomers=true.
     /// type=Regular — сервер не присылает квартирные точки (их в приложении нет, см. PLAN.md).
     /// getCustomers=true — потребители, указанные у самих точек (как у fetchNodes).

@@ -61,6 +61,9 @@ final class DataStore {
     private(set) var nodesState: ListLoadState = .idle
     /// Группы объектов (для выбора группы во вкладке «Объекты»). Пусто — групп нет или ещё не загружены.
     private(set) var nodeGroups: [NodeGroup] = []
+    /// Незавершённые работы на объектах (карточка объекта, вкладка «Работы»). Приходят и обновляются вместе
+    /// со списком объектов. nil — ещё ни разу не получали (кэш пуст или сохранён прошлой версией приложения).
+    private(set) var nodeJobs: [NodeJob]?
     /// Потребители, указанные у объектов или точек, по названию — варианты фильтра «Потребитель».
     private(set) var customers: [Customer] = []
 
@@ -171,6 +174,7 @@ final class DataStore {
             nodesUpdatedAt = cached.savedAt
             nodesResponseBytes = cached.responseBytes
             nodeGroups = cached.groups ?? []
+            nodeJobs = cached.jobs
             nodeCustomers = cached.customers ?? []
         }
         if let cached = await cacheStore.loadMeasurePoints() {
@@ -304,6 +308,7 @@ final class DataStore {
         nodesLastAttemptAt = nil
         nodesState = .idle
         nodeGroups = []
+        nodeJobs = nil
         measurePoints = []
         measurePointsUpdatedAt = nil
         measurePointsResponseBytes = nil
@@ -394,6 +399,7 @@ final class DataStore {
             let result = try await ListRefresher.downloadAndSave(kind, client: client, token: token,
                                                                  cacheStore: cacheStore,
                                                                  previousGroups: nodeGroups,
+                                                                 previousJobs: nodeJobs,
                                                                  onProgress: onProgress)
             if isStopped {
                 return
@@ -474,12 +480,14 @@ final class DataStore {
     /// Показать на экране список, полученный с сервера.
     private func apply(_ result: ListDownloadResult) {
         switch result {
-        case .nodes(let newNodes, let groups, let newCustomers, let currentUser, let savedAt, let responseBytes):
+        case .nodes(let newNodes, let groups, let newCustomers, let jobs, let currentUser, let savedAt,
+                    let responseBytes):
             if let currentUser {
                 session.updateCurrentUser(currentUser)
             }
             nodes = newNodes
             nodeGroups = groups
+            nodeJobs = jobs
             nodeCustomers = newCustomers
             nodesUpdatedAt = savedAt
             nodesResponseBytes = responseBytes
@@ -578,6 +586,20 @@ final class DataStore {
             .filter { $0.nodeId == nodeId }
             .sorted { first, second in
                 first.title.localizedStandardCompare(second.title) == .orderedAscending
+            }
+    }
+
+    /// Номера объектов, у которых есть незавершённые работы, — для фильтра «Есть работы».
+    var nodeIdsWithJobs: Set<Int> {
+        return Set((nodeJobs ?? []).map(\.nodeId))
+    }
+
+    /// Незавершённые работы на объекте — из кэша, сначала те, что раньше должны закончиться.
+    func jobs(ofNode nodeId: Int) -> [NodeJob] {
+        return (nodeJobs ?? [])
+            .filter { $0.nodeId == nodeId }
+            .sorted { first, second in
+                (first.scheduledEndDay ?? "") < (second.scheduledEndDay ?? "")
             }
     }
 

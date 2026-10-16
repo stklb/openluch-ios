@@ -120,7 +120,7 @@ final class DemoServerTests: XCTestCase {
         }
         let result = try await ListRefresher.downloadAndSave(.nodes, client: client, token: token,
                                                              cacheStore: CacheStore(directory: cacheDirectory))
-        guard case .nodes(_, _, _, let userWithNodes, _, _) = result else {
+        guard case .nodes(_, _, _, _, let userWithNodes, _, _) = result else {
             return XCTFail("ожидался список объектов")
         }
         XCTAssertEqual(userWithNodes, user)

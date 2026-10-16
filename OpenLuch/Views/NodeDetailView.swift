@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Карточка объекта учёта: в заголовке — кружок состояния и название; ниже одним блоком адрес,
-// сезон, ответственный (только имя), комментарий; затем точки учёта.
+// сезон, ответственный (только имя), комментарий; затем незавершённые работы (если есть) и точки учёта.
 // Всё берётся из кэша на телефоне — открывается мгновенно и без интернета, трафика не тратит.
 // Сеть нужна, только если пользователь сам нажмёт «Открыть в Картах» (откроется приложение «Карты»).
 struct NodeDetailView: View {
@@ -13,9 +13,13 @@ struct NodeDetailView: View {
         // Если список обновился, пока карточка открыта, — показываем свежие сведения.
         let current = dataStore.node(withId: node.id) ?? node
         let points = dataStore.measurePoints(ofNode: node.id)
+        let jobs = dataStore.jobs(ofNode: node.id)
 
         List {
             mainSection(current)
+            if !jobs.isEmpty {
+                jobsSection(jobs, points: points)
+            }
             pointsSection(points)
         }
         // Небольшие отступы между разделами — как в карточке точки.
@@ -100,6 +104,66 @@ struct NodeDetailView: View {
             Text(text)
                 .textSelection(.enabled)
         }
+    }
+
+    /// Незавершённые работы (назначенные и просроченные). Приходят вместе со списком объектов,
+    /// поэтому отдельной даты «Обновлено» нет. Только просмотр — работами управляют в ЛЭРС.
+    private func jobsSection(_ jobs: [NodeJob], points: [MeasurePoint]) -> some View {
+        Section {
+            ForEach(jobs) { job in
+                jobRow(job, pointTitle: points.first { $0.id == job.measurePointId }?.title)
+            }
+        } header: {
+            Text("Работы: \(jobs.count)")
+        }
+    }
+
+    /// Одна работа: название; тип и номер наряда; сроки (просроченная — оранжевым ⚠︎, как поверка
+    /// в оборудовании); точка, исполнитель, описание — серым, если указаны.
+    private func jobRow(_ job: NodeJob, pointTitle: String?) -> some View {
+        let typeTitle = job.typeTitle ?? ""
+        let showsType = !typeTitle.isEmpty && typeTitle != job.displayTitle
+        let orderNumber = job.workOrderNumber ?? ""
+        let subtitle = [showsType ? typeTitle : "", orderNumber.isEmpty ? "" : "наряд № \(orderNumber)"]
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
+        let performer = job.performerName ?? ""
+
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(job.displayTitle)
+            if !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if let period = job.periodText {
+                if job.isOverdue {
+                    Label("\(period), просрочена", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                } else {
+                    Text(period)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if let pointTitle {
+                Text("Точка: \(pointTitle)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if !performer.isEmpty {
+                Text("Исполнитель: \(performer)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if let description = job.description {
+                Text(description)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .textSelection(.enabled)
     }
 
     private func pointsSection(_ points: [MeasurePoint]) -> some View {

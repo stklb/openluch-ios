@@ -40,6 +40,9 @@ nonisolated struct CachedNodes: Codable, Sendable {
     var groups: [NodeGroup]? = nil
     /// Потребители объектов (для фильтра «Потребитель»). nil — кэш сохранён прошлой версией приложения.
     var customers: [Customer]? = nil
+    /// Незавершённые работы на объектах (отдельный маленький запрос вместе со списком объектов).
+    /// nil — кэш сохранён прошлой версией приложения.
+    var jobs: [NodeJob]? = nil
 }
 
 /// Сохранённый список точек учёта и время, когда он был получен с сервера.
@@ -100,9 +103,10 @@ nonisolated final class CacheStore: Sendable {
 
     @concurrent
     func saveNodes(_ nodes: [Node], savedAt: Date = Date(), responseBytes: Int? = nil,
-                   groups: [NodeGroup]? = nil, customers: [Customer]? = nil) async throws {
+                   groups: [NodeGroup]? = nil, customers: [Customer]? = nil,
+                   jobs: [NodeJob]? = nil) async throws {
         let cached = CachedNodes(savedAt: savedAt, nodes: nodes, responseBytes: responseBytes, groups: groups,
-                                 customers: customers)
+                                 customers: customers, jobs: jobs)
         let data = try JSONEncoder().encode(cached)
         try writeFile(data, to: nodesFile)
     }

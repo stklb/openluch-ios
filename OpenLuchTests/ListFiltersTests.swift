@@ -22,6 +22,25 @@ final class ListFiltersTests: XCTestCase {
         XCTAssertTrue([boiler, house, office].filter { filter.matches($0, groupMembers: nil) }.isEmpty)
     }
 
+    func testNodeWithJobsFilter() {
+        let boiler = Node(id: 1, title: "Котельная", address: "", type: "PowerSource", state: "Error")
+        let house = Node(id: 2, title: "Дом", address: "", type: "House", state: "Normal")
+        let nodesWithJobs: Set<Int> = [2]
+
+        var filter = NodeFilter()
+        filter.withJobs = true
+        XCTAssertTrue(filter.isActive)
+        XCTAssertEqual([boiler, house].filter {
+            filter.matches($0, groupMembers: nil, hasJobs: nodesWithJobs.contains($0.id))
+        }.map(\.id), [2])
+
+        // Фильтр, сохранённый прошлой версией (без поля withJobs), читается как был, а не сбрасывается.
+        let old = NodeFilter.decode(Data(#"{"states":["error"],"season":"Winter"}"#.utf8))
+        XCTAssertEqual(old.states, [.error])
+        XCTAssertEqual(old.season, "Winter")
+        XCTAssertNil(old.withJobs)
+    }
+
     func testPointSystemsAllowSeveral() {
         func point(_ id: Int, _ system: String, node: Int, link: String? = nil) -> MeasurePoint {
             return MeasurePoint(id: id, title: "", fullTitle: "", parentTitle: nil, address: nil, nodeId: node,

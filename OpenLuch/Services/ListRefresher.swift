@@ -8,8 +8,8 @@ import Foundation
 /// Что получено с сервера (уже отсортировано и сохранено в кэш).
 /// У объектов заодно — имя и права пользователя (nil — запрос не удался, оставить прежние).
 nonisolated enum ListDownloadResult: Sendable {
-    case nodes([Node], groups: [NodeGroup], customers: [Customer], currentUser: CurrentUser?, savedAt: Date,
-               responseBytes: Int)
+    case nodes([Node], groups: [NodeGroup], customers: [Customer], jobs: [NodeJob]?, currentUser: CurrentUser?,
+               savedAt: Date, responseBytes: Int)
     case measurePoints([MeasurePoint], customers: [Customer], savedAt: Date, responseBytes: Int)
     case equipment([Equipment], savedAt: Date, responseBytes: Int)
 }
@@ -17,10 +17,11 @@ nonisolated enum ListDownloadResult: Sendable {
 nonisolated enum ListRefresher {
 
     /// Скачать один список, отсортировать и сохранить в кэш.
-    /// `previousGroups` — группы объектов, которые оставить, если запрос групп не удался.
+    /// `previousGroups` и `previousJobs` — группы и работы, которые оставить, если их запрос не удался.
     /// Ошибки — APIError (в т.ч. .cancelled, если задачу отменили).
     static func downloadAndSave(_ kind: ListKind, client: APIClient, token: String, cacheStore: CacheStore,
                                 previousGroups: [NodeGroup] = [],
+                                previousJobs: [NodeJob]? = nil,
                                 onProgress: @escaping @Sendable (DownloadProgress) -> Void = { _ in })
     async throws -> ListDownloadResult {
         switch kind {
@@ -34,6 +35,11 @@ nonisolated enum ListRefresher {
             // прежние группы: список объектов важнее, из-за групп его не теряем.
             let groups = (try? await client.fetchNodeGroups(token: token)) ?? previousGroups
             try Task.checkCancellation()
+            // Незавершённые работы на объектах (~1 КБ на работу) — тоже следом и с тем же сроком годности,
+            // что у объектов: для карточки объекта и вкладки «Работы». Не получилось — оставляем прежние,
+            // как группы (nil — работ ещё ни разу не получали).
+            let jobs = (try? await client.fetchIncompleteNodeJobs(token: token)) ?? previousJobs
+            try Task.checkCancellation()
             // Имя и права учётной записи (Login/Current, ~1,8 КБ) — тоже следом: так изменения
             // учётной записи на сервере доходят до приложения вместе с автообновлением справочников.
             // Не получилось — не страшно, останутся прежние.
@@ -43,9 +49,9 @@ nonisolated enum ListRefresher {
             // Не получилось сохранить на телефон (например, нет места) — не беда:
             // список всё равно покажем, просто после перезапуска его не будет.
             try? await cacheStore.saveNodes(sorted, savedAt: savedAt, responseBytes: result.responseBytes,
-                                            groups: groups, customers: result.customers)
-            return .nodes(sorted, groups: groups, customers: result.customers, currentUser: currentUser,
-                          savedAt: savedAt, responseBytes: result.responseBytes)
+                                            groups: groups, customers: result.customers, jobs: jobs)
+            return .nodes(sorted, groups: groups, customers: result.customers, jobs: jobs,
+                          currentUser: currentUser, savedAt: savedAt, responseBytes: result.responseBytes)
 
         case .measurePoints:
             let result = try await client.fetchMeasurePoints(token: token, onProgress: onProgress)

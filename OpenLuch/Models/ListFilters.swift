@@ -85,11 +85,18 @@ nonisolated struct NodeFilter: SavedFilter {
     var season: String?
     /// Потребитель (Customer.id) — указанный у объекта или у любой его точки.
     var customerId: Int?
+    /// «Есть работы» — только объекты с незавершёнными работами. true — включён, nil — выключен
+    /// (не false: так фильтр, сохранённый прошлой версией приложения без этого поля, читается как есть).
+    var withJobs: Bool?
 
     /// `groupMembers` — объекты выбранной группы (nil — группа не выбрана или удалена на сервере).
     /// `customerIds` — потребители объекта и его точек (DataStore.customerIds(ofNode:)).
-    func matches(_ node: Node, groupMembers: Set<Int>?, customerIds: Set<Int> = []) -> Bool {
+    /// `hasJobs` — есть ли у объекта незавершённые работы (DataStore.nodeIdsWithJobs).
+    func matches(_ node: Node, groupMembers: Set<Int>?, customerIds: Set<Int> = [], hasJobs: Bool = false) -> Bool {
         if let groupMembers, !groupMembers.contains(node.id) {
+            return false
+        }
+        if withJobs == true && !hasJobs {
             return false
         }
         if let customerId, !customerIds.contains(customerId) {

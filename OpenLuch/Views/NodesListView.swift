@@ -4,7 +4,7 @@ import SwiftUI
 // Список не загружается при каждом открытии — см. правила обновления в DataStore.
 // Жест «потянуть вниз для обновления» намеренно не делаем (решение владельца, PLAN.md).
 //
-// Фильтры (кнопка вверху справа, окно «Фильтры»): состояние, группа, тип объекта, сезон — вместе.
+// Фильтры (кнопка вверху справа, окно «Фильтры»): состояние, группа, тип объекта, сезон, «Есть работы» — вместе.
 // Заголовок экрана показывает выбранную группу. Выбор запоминается между запусками.
 struct NodesListView: View {
     @Environment(DataStore.self) private var dataStore
@@ -133,8 +133,10 @@ struct NodesListView: View {
             return dataStore.nodes
         }
         let groupMembers = dataStore.nodeIds(inGroup: current.groupId)
+        let nodesWithJobs = dataStore.nodeIdsWithJobs
         return dataStore.nodes.filter { node in
-            if !current.matches(node, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofNode: node)) {
+            if !current.matches(node, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofNode: node),
+                                hasJobs: nodesWithJobs.contains(node.id)) {
                 return false
             }
             if isSearching {
@@ -163,6 +165,9 @@ struct NodesListView: View {
         if let customer = dataStore.customers.first(where: { $0.id == current.customerId }) {
             parts.append(customer.title)
         }
+        if current.withJobs == true {
+            parts.append("Есть работы")
+        }
         return parts.joined(separator: " · ")
     }
 
@@ -184,6 +189,12 @@ struct NodesListView: View {
                              options: FilterOption.distinct(dataStore.nodes, value: { $0.currentSeason ?? "" },
                                                             title: { Node.seasonTitle($0) }),
                              selection: filter.season)
+                // Строка скрыта, если работ нет ни у одного объекта (выбирать не из чего), —
+                // но остаётся, пока фильтр включён, чтобы его можно было выключить.
+                if !dataStore.nodeIdsWithJobs.isEmpty || filter.wrappedValue.withJobs == true {
+                    Toggle("Есть работы", isOn: Binding(get: { filter.wrappedValue.withJobs == true },
+                                                        set: { filter.wrappedValue.withJobs = $0 ? true : nil }))
+                }
             }
         }
     }

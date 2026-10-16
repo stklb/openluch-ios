@@ -161,15 +161,16 @@ nonisolated enum BackgroundRefresh {
                              details: "\(currentConnection.title): списки ещё свежие.")
         }
 
-        let previousGroups = await session.cacheStore.loadNodes()?.groups ?? []
+        let previousNodes = await session.cacheStore.loadNodes()
         var savedKinds: [ListKind] = []
         for kind in staleKinds {
             do {
                 let result = try await ListRefresher.downloadAndSave(kind, client: client, token: token,
                                                                      cacheStore: session.cacheStore,
-                                                                     previousGroups: previousGroups)
+                                                                     previousGroups: previousNodes?.groups ?? [],
+                                                                     previousJobs: previousNodes?.jobs)
                 // Вместе с объектами пришли имя и права пользователя — сохраняем.
-                if case .nodes(_, _, _, let currentUser?, _, _) = result {
+                if case .nodes(_, _, _, _, let currentUser?, _, _) = result {
                     session.updateCurrentUser(currentUser)
                 }
                 savedKinds.append(kind)
