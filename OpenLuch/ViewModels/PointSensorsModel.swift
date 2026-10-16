@@ -8,14 +8,12 @@ import Observation
 //   1. Сразу показываем сохранённые на телефоне датчики — без сети.
 //   2. Ни разу не загружались — загружаем при открытии карточки, при любой сети
 //      (без датчиков разделу нечего показать). Идёт полоса «Получено X КБ из Y КБ».
-//   3. Сохранённым больше суток — обновляем автоматически, но только по Wi-Fi.
+//   3. Сохранённые устарели — перекачиваем при открытии вкладки. Срок — из «Настроек» («Автообновление
+//      справочников»), свой для Wi-Fi и сотовой сети (CacheFreshness.isStaleOnOpen). В фоне — никогда.
 //   4. Ошибка не стирает показанные датчики. Ушли с карточки — загрузка отменяется.
 //   5. Ответ 401 — сессия истекла: на экран входа.
 @Observable
 final class PointSensorsModel {
-
-    /// Как часто обновлять сохранённые датчики (только по Wi-Fi).
-    static let refreshInterval: TimeInterval = 24 * 60 * 60
 
     let pointId: Int
 
@@ -56,25 +54,11 @@ final class PointSensorsModel {
     /// большой ответ не задерживал показания.
     func refreshIfNeeded(now: Date = Date()) async {
         await loadCache()
-        let shouldLoad = PointSensorsModel.shouldLoad(savedAt: cached?.savedAt,
-                                                      connection: NetworkMonitor.shared.connectionKind,
-                                                      now: now)
+        let lifetime = CacheFreshness.lifetime(for: NetworkMonitor.shared.connectionKind)
+        let shouldLoad = CacheFreshness.isStaleOnOpen(savedAt: cached?.savedAt, lifetime: lifetime, now: now)
         if shouldLoad {
             await refresh()
         }
-    }
-
-    /// Правило загрузки (отдельной функцией — чтобы проверить тестами).
-    static func shouldLoad(savedAt: Date?, connection: ConnectionKind, now: Date) -> Bool {
-        // Ни разу не загружались — загружаем при любой сети.
-        guard let savedAt else {
-            return true
-        }
-        // Обновлять — только по Wi-Fi и не чаще раза в сутки.
-        guard connection == .wifi else {
-            return false
-        }
-        return now.timeIntervalSince(savedAt) >= refreshInterval
     }
 
     /// Датчики пришли в другом запросе (вместе со списком отчётов — PointReportsModel):

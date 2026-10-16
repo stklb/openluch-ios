@@ -8,6 +8,11 @@ import Foundation
 //   • в фоне — когда iOS разбудит приложение (BackgroundRefresh): обновляем только устаревшее,
 //     а будить просим не раньше, чем первый список может устареть.
 // Кнопка «Обновить» в «Настройках» работает всегда, независимо от сроков.
+//
+// Те же сроки — у тяжёлых данных одной точки: датчиков (~365 КБ) и списка отчётов (~450 КБ)
+// (решение владельца 2026-10-16). Но это не автообновление, а срок годности: проверяется ТОЛЬКО когда
+// пользователь открыл вкладку «Датчики» или окно «Отчёт» этой точки (isStaleOnOpen). Ни в фоне, ни
+// вместе со списками они не скачиваются — BackgroundRefresh и DataStore обновляют только три списка.
 nonisolated enum CacheFreshness {
 
     // MARK: - Настройки
@@ -96,6 +101,19 @@ nonisolated enum CacheFreshness {
             return connection == .wifi
         }
         return now.timeIntervalSince(updatedAt) >= lifetime
+    }
+
+    /// Пора ли перекачать данные, которые загружаются при открытии экрана (датчики, список отчётов точки).
+    /// - savedAt: когда сохранены (nil — ещё ни разу: загружаем при любой сети, иначе экрану нечего показать);
+    /// - lifetime: срок для текущего подключения (`lifetime(for:)`; nil — «Никогда» или нет сети: показываем сохранённое).
+    static func isStaleOnOpen(savedAt: Date?, lifetime: TimeInterval?, now: Date) -> Bool {
+        guard let savedAt else {
+            return true
+        }
+        guard let lifetime else {
+            return false
+        }
+        return now.timeIntervalSince(savedAt) >= lifetime
     }
 
     // MARK: - Когда будить в фоне

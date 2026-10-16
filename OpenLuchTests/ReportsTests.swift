@@ -134,19 +134,6 @@ final class ReportsTests: XCTestCase {
         XCTAssertFalse(reversed.isValid(calendar: calendar))
     }
 
-    func testReportListLoadingRule() {
-        let now = Date(timeIntervalSince1970: 1_790_000_000)
-        let day = PointReportsModel.refreshInterval
-
-        // Ни разу не загружался — при любой сети (без списка отчёт не сформировать).
-        XCTAssertTrue(PointReportsModel.shouldLoadList(savedAt: nil, connection: .cellular, now: now))
-        // Сохранён — по сотовой сети не обновляем, по Wi-Fi — раз в сутки.
-        let old = now.addingTimeInterval(-day - 1)
-        XCTAssertFalse(PointReportsModel.shouldLoadList(savedAt: old, connection: .cellular, now: now))
-        XCTAssertTrue(PointReportsModel.shouldLoadList(savedAt: old, connection: .wifi, now: now))
-        XCTAssertFalse(PointReportsModel.shouldLoadList(savedAt: now.addingTimeInterval(-60), connection: .wifi, now: now))
-    }
-
     // MARK: - Хранение на телефоне
 
     private func makeReportStore() -> (store: ReportStore, folder: URL) {

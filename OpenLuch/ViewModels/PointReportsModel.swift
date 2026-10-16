@@ -9,7 +9,8 @@ import Observation
 //   1. Сохранённый список показывается сразу — без сети.
 //   2. Ни разу не загружался — загружается, когда пользователь открыл окно «Сформировать отчёт»
 //      (при любой сети, с полосой «Получено X КБ из Y КБ»). Просто открытая карточка его НЕ качает.
-//   3. Старше суток — обновляется при открытии окна, но только по Wi-Fi.
+//   3. Устарел — обновляется при открытии окна. Срок — из «Настроек» («Автообновление справочников»),
+//      свой для Wi-Fi и сотовой сети (CacheFreshness.isStaleOnOpen). В фоне — никогда.
 //      Вручную — кнопкой «Обновить список отчётов» в окне (при любой сети).
 //   4. Ошибка не стирает показанный список. 401 — на экран входа.
 // В том же ответе приходят датчики точки — их сразу отдаём PointSensorsModel (не придётся качать отдельно).
@@ -19,9 +20,6 @@ import Observation
 //   на телефоне (ReportStore) → окно показывает отчёт. «Отмена» или закрытие окна прерывают загрузку.
 @Observable
 final class PointReportsModel {
-
-    /// Как часто обновлять сохранённый список отчётов (только по Wi-Fi).
-    static let refreshInterval: TimeInterval = 24 * 60 * 60
 
     /// Этап формирования отчёта — для строки состояния в окне.
     enum GenerationStage: Equatable {
@@ -103,25 +101,11 @@ final class PointReportsModel {
     /// Загрузить список с сервера, если нужно (правила 2 и 3 в начале файла). Вызывает окно отчёта.
     func refreshListIfNeeded(now: Date = Date()) async {
         await loadCache()
-        let shouldLoad = PointReportsModel.shouldLoadList(savedAt: cachedList?.savedAt,
-                                                          connection: NetworkMonitor.shared.connectionKind,
-                                                          now: now)
+        let lifetime = CacheFreshness.lifetime(for: NetworkMonitor.shared.connectionKind)
+        let shouldLoad = CacheFreshness.isStaleOnOpen(savedAt: cachedList?.savedAt, lifetime: lifetime, now: now)
         if shouldLoad {
             await refreshList()
         }
-    }
-
-    /// Правило загрузки списка (отдельной функцией — чтобы проверить тестами).
-    static func shouldLoadList(savedAt: Date?, connection: ConnectionKind, now: Date) -> Bool {
-        // Ни разу не загружался — загружаем при любой сети: без списка отчёт не сформировать.
-        guard let savedAt else {
-            return true
-        }
-        // Обновлять — только по Wi-Fi и не чаще раза в сутки.
-        guard connection == .wifi else {
-            return false
-        }
-        return now.timeIntervalSince(savedAt) >= refreshInterval
     }
 
     /// Загрузить список отчётов с сервера сейчас (кнопки «Обновить список отчётов» и «Повторить»).

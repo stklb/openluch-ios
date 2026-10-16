@@ -37,18 +37,19 @@ final class PointSensorsTests: XCTestCase {
         XCTAssertEqual(sensor.equipmentTitle, "Оборудование № 1")
     }
 
-    func testLoadRule() {
+    /// Датчики и список отчётов точки — по срокам из «Настроек», только при открытии экрана.
+    func testLoadOnOpenRule() {
         let now = Date()
-        let day = PointSensorsModel.refreshInterval
+        let hour: TimeInterval = 60 * 60
 
-        // Ни разу не загружались — при любой сети (иначе разделу нечего показать).
-        XCTAssertTrue(PointSensorsModel.shouldLoad(savedAt: nil, connection: .cellular, now: now))
-        XCTAssertTrue(PointSensorsModel.shouldLoad(savedAt: nil, connection: .wifi, now: now))
+        // Ни разу не загружались — при любой сети и даже при «Никогда» (иначе экрану нечего показать).
+        XCTAssertTrue(CacheFreshness.isStaleOnOpen(savedAt: nil, lifetime: nil, now: now))
+        XCTAssertTrue(CacheFreshness.isStaleOnOpen(savedAt: nil, lifetime: hour, now: now))
 
-        // Сохранены — по сотовой сети не обновляем никогда, по Wi-Fi — раз в сутки.
-        let old = now.addingTimeInterval(-day - 1)
-        XCTAssertFalse(PointSensorsModel.shouldLoad(savedAt: old, connection: .cellular, now: now))
-        XCTAssertTrue(PointSensorsModel.shouldLoad(savedAt: old, connection: .wifi, now: now))
-        XCTAssertFalse(PointSensorsModel.shouldLoad(savedAt: now.addingTimeInterval(-60), connection: .wifi, now: now))
+        // Сохранены: устарели по сроку — перекачиваем, свежие — нет; «Никогда» (или нет сети) — не трогаем.
+        let old = now.addingTimeInterval(-hour - 1)
+        XCTAssertTrue(CacheFreshness.isStaleOnOpen(savedAt: old, lifetime: hour, now: now))
+        XCTAssertFalse(CacheFreshness.isStaleOnOpen(savedAt: now.addingTimeInterval(-60), lifetime: hour, now: now))
+        XCTAssertFalse(CacheFreshness.isStaleOnOpen(savedAt: old, lifetime: nil, now: now))
     }
 }
