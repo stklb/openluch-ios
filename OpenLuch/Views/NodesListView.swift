@@ -76,10 +76,13 @@ struct NodesListView: View {
                         }
                     }
                 } header: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ListStatusHeader(kind: .nodes)
-                        if current.isActive {
-                            ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                    // Заголовок — только если в нём что-то есть: пустой занимает место (см. ListStatusHeader).
+                    if ListStatusHeader.hasContent(kind: .nodes, dataStore: dataStore) || current.isActive {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ListStatusHeader(kind: .nodes)
+                            if current.isActive {
+                                ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                            }
                         }
                     }
                 }

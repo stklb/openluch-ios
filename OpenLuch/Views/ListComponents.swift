@@ -490,11 +490,19 @@ struct ListStatusHeader: View {
 
     let kind: ListKind
 
+    /// Есть ли что показать в строке (загрузка, ошибка или нет связи).
+    /// Списки спрашивают это заранее: если показывать нечего, заголовок раздела списка не создают вовсе —
+    /// пустой заголовок List всё равно растягивает до системной высоты, и под поиском
+    /// остаётся пустая полоса.
+    static func hasContent(kind: ListKind, dataStore: DataStore) -> Bool {
+        dataStore.state(for: kind) != .idle || ConnectionProblemDetector.shared.problem != nil
+    }
+
     var body: some View {
         let state = dataStore.state(for: kind)
         let hasConnectionProblem = ConnectionProblemDetector.shared.problem != nil
 
-        if state != .idle || hasConnectionProblem {
+        if Self.hasContent(kind: kind, dataStore: dataStore) {
             VStack(alignment: .leading, spacing: 6) {
                 ConnectionProblemNotice()
                 switch state {

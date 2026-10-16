@@ -80,10 +80,13 @@ struct EquipmentListView: View {
                         }
                     }
                 } header: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ListStatusHeader(kind: .equipment)
-                        if current.isActive {
-                            ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                    // Заголовок — только если в нём что-то есть: пустой занимает место (см. ListStatusHeader).
+                    if ListStatusHeader.hasContent(kind: .equipment, dataStore: dataStore) || current.isActive {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ListStatusHeader(kind: .equipment)
+                            if current.isActive {
+                                ActiveFilterBar(summary: summary(current), reset: resetFilter)
+                            }
                         }
                     }
                 }
