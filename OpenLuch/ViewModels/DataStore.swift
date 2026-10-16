@@ -92,6 +92,8 @@ final class DataStore {
     /// Потребители из ответов сервера: объектов и точек (сервер присылает их вместе со списками).
     private var nodeCustomers: [Customer] = []
     private var pointCustomers: [Customer] = []
+    /// Названия пользовательских атрибутов точек: код → название (приходят вместе со списком точек).
+    private(set) var pointAttributeTitles: [String: String] = [:]
     /// Для фильтра «Потребитель» в обе стороны (см. rebuildCustomerIndex):
     /// объект → потребители, указанные у него и у его точек; объект → его собственный потребитель.
     private var customerIdsByNode: [Int: Set<Int>] = [:]
@@ -182,6 +184,7 @@ final class DataStore {
             measurePointsUpdatedAt = cached.savedAt
             measurePointsResponseBytes = cached.responseBytes
             pointCustomers = cached.customers ?? []
+            pointAttributeTitles = cached.attributeTitles ?? [:]
         }
         rebuildCustomerIndex()
         if let cached = await cacheStore.loadEquipment() {
@@ -321,6 +324,7 @@ final class DataStore {
         equipmentState = .idle
         nodeCustomers = []
         pointCustomers = []
+        pointAttributeTitles = [:]
         rebuildCustomerIndex()
         cacheSizeBytes = await cacheStore.totalSizeInBytes()
 
@@ -492,7 +496,8 @@ final class DataStore {
             nodesUpdatedAt = savedAt
             nodesResponseBytes = responseBytes
             rebuildCustomerIndex()
-        case .measurePoints(let newPoints, let newCustomers, let savedAt, let responseBytes):
+        case .measurePoints(let newPoints, let newCustomers, let attributeTitles, let savedAt, let responseBytes):
+            pointAttributeTitles = attributeTitles ?? [:]
             measurePoints = newPoints
             pointCustomers = newCustomers
             measurePointsUpdatedAt = savedAt

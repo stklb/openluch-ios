@@ -10,7 +10,8 @@ import Foundation
 nonisolated enum ListDownloadResult: Sendable {
     case nodes([Node], groups: [NodeGroup], customers: [Customer], jobs: [NodeJob]?, currentUser: CurrentUser?,
                savedAt: Date, responseBytes: Int)
-    case measurePoints([MeasurePoint], customers: [Customer], savedAt: Date, responseBytes: Int)
+    case measurePoints([MeasurePoint], customers: [Customer], attributeTitles: [String: String]?, savedAt: Date,
+                       responseBytes: Int)
     case equipment([Equipment], savedAt: Date, responseBytes: Int)
 }
 
@@ -59,11 +60,18 @@ nonisolated enum ListRefresher {
             let sorted = result.measurePoints.sorted { first, second in
                 first.fullTitle.localizedStandardCompare(second.fullTitle) == .orderedAscending
             }
+            // Названия атрибутов точек (~2,4 КБ) — следом: у точек сервер присылает только коды атрибутов.
+            // Не получилось — берём прежние из кэша (читаем его только в этом случае: файл точек большой).
+            var attributeTitles = try? await client.fetchAttributeTitles(token: token)
+            if attributeTitles == nil {
+                attributeTitles = await cacheStore.loadMeasurePoints()?.attributeTitles
+            }
+            try Task.checkCancellation()
             let savedAt = Date()
             try? await cacheStore.saveMeasurePoints(sorted, savedAt: savedAt, responseBytes: result.responseBytes,
-                                                    customers: result.customers)
-            return .measurePoints(sorted, customers: result.customers, savedAt: savedAt,
-                                  responseBytes: result.responseBytes)
+                                                    customers: result.customers, attributeTitles: attributeTitles)
+            return .measurePoints(sorted, customers: result.customers, attributeTitles: attributeTitles,
+                                  savedAt: savedAt, responseBytes: result.responseBytes)
 
         case .equipment:
             // Список уже отсортирован при разборе ответа (Equipment.makeList).

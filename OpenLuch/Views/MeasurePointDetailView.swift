@@ -240,15 +240,66 @@ struct MeasurePointDetailView: View {
                 // Объекта нет в кэше (например, список объектов ещё не загружен).
                 LabeledContent("Объект", value: parentTitle)
             }
-            if let comment = point.comment, !comment.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Комментарий")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Text(comment)
-                        .textSelection(.enabled)
-                }
+            // Потребитель: указанный у самой точки, а если нет — у её объекта (в ЛЭРС его задают
+            // в одном из двух мест; решение владельца 2026-10-16).
+            if let customerTitle = customerTitle(node: node) {
+                captionedText("Потребитель", customerTitle)
             }
+            if point.isVirtual == true {
+                // Расчётная точка — объясняет, почему у неё нет прибора и опроса.
+                Label("Расчётная точка", systemImage: "function")
+            }
+            if let admissionDay = point.admissionDay {
+                admissionRow(admissionDay)
+            }
+            let ratios = point.transformationRatios
+            if let current = ratios.current {
+                LabeledContent("Коэфф. трансформации тока", value: TextFormatting.plainNumber(current))
+            }
+            if let voltage = ratios.voltage {
+                LabeledContent("Коэфф. трансформации напряжения", value: TextFormatting.plainNumber(voltage))
+            }
+            // Пользовательские атрибуты — как в карточке объекта: подпись сверху, значение под ней.
+            let attributes = point.filledAttributes(titles: dataStore.pointAttributeTitles)
+            ForEach(attributes.indices, id: \.self) { index in
+                captionedText(attributes[index].title, attributes[index].value)
+            }
+            if let comment = point.comment, !comment.isEmpty {
+                captionedText("Комментарий", comment)
+            }
+        }
+    }
+
+    /// Потребитель точки или (если у точки не указан) её объекта — из кэша; nil — нигде не указан.
+    private func customerTitle(node: Node?) -> String? {
+        guard let customerId = point.customerId ?? node?.customerId else {
+            return nil
+        }
+        return dataStore.customers.first { $0.id == customerId }?.title
+    }
+
+    /// «Допущена до 04.06.2026»; срок прошёл — оранжевым с треугольником (как истёкшая поверка).
+    @ViewBuilder
+    private func admissionRow(_ day: String) -> some View {
+        let text = TextFormatting.calendarDay(day)
+        if point.isAdmissionExpired(today: Equipment.calendarDay(of: Date())) {
+            LabeledContent("Допущена до") {
+                Label(text, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+            }
+        } else {
+            LabeledContent("Допущена до", value: text)
+        }
+    }
+
+    /// Мелкая серая подпись сверху и текст под ней (длинный текст не жмётся вправо).
+    private func captionedText(_ caption: String, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(caption)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            Text(text)
+                .textSelection(.enabled)
         }
     }
 

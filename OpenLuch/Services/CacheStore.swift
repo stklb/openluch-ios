@@ -53,6 +53,9 @@ nonisolated struct CachedMeasurePoints: Codable, Sendable {
     let responseBytes: Int?
     /// Потребители, указанные у точек (см. CachedNodes.customers).
     var customers: [Customer]? = nil
+    /// Названия пользовательских атрибутов: код → название (справочник приходит вместе со списком точек).
+    /// nil — кэш сохранён прошлой версией приложения или справочник ни разу не удалось получить.
+    var attributeTitles: [String: String]? = nil
 }
 
 /// Сохранённый справочник оборудования и время, когда он был получен с сервера.
@@ -124,9 +127,11 @@ nonisolated final class CacheStore: Sendable {
 
     @concurrent
     func saveMeasurePoints(_ measurePoints: [MeasurePoint], savedAt: Date = Date(),
-                           responseBytes: Int? = nil, customers: [Customer]? = nil) async throws {
+                           responseBytes: Int? = nil, customers: [Customer]? = nil,
+                           attributeTitles: [String: String]? = nil) async throws {
         let cached = CachedMeasurePoints(savedAt: savedAt, measurePoints: measurePoints,
-                                         responseBytes: responseBytes, customers: customers)
+                                         responseBytes: responseBytes, customers: customers,
+                                         attributeTitles: attributeTitles)
         let data = try JSONEncoder().encode(cached)
         try writeFile(data, to: measurePointsFile)
     }

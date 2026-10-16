@@ -38,11 +38,27 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
     /// Потребитель (Customer.id), если он указан у самой точки (обычно указывают у объекта). nil — не указан.
     let customerId: Int?
 
+    // Для карточки точки (решение владельца 2026-10-16). Приходят в том же списке точек — трафика не добавляют.
+    // Все необязательные: кэш прошлой версии приложения без них тоже читается.
+
+    /// Пользовательские атрибуты точки — только код и значение (названий сервер у точек не присылает,
+    /// они — в справочнике атрибутов, см. CachedMeasurePoints.attributeTitles).
+    let attributes: [PointAttribute]?
+    /// Расчётная точка: своего прибора нет, значения вычисляются из других точек.
+    let isVirtual: Bool?
+    /// Дата, до которой точка допущена в эксплуатацию, — как прислал сервер (без часового пояса).
+    let admissionDate: String?
+    /// Коэффициенты трансформации по току и напряжению (у электроснабжения), 1 — без трансформатора.
+    let currentRatio: Double?
+    let voltageRatio: Double?
+
     /// Создание точки вручную (в тестах). Сервер присылает точки в JSON — их создаёт JSONDecoder.
     init(id: Int, title: String, fullTitle: String, parentTitle: String?, address: String?, nodeId: Int?,
          systemType: String?, resourceKind: String?, state: String?,
          commLinkType: String? = nil, comment: String? = nil, deviceId: Int? = nil,
-         selectedParamsList: [Int]? = nil, customerId: Int? = nil) {
+         selectedParamsList: [Int]? = nil, customerId: Int? = nil, attributes: [PointAttribute]? = nil,
+         isVirtual: Bool? = nil, admissionDate: String? = nil, currentRatio: Double? = nil,
+         voltageRatio: Double? = nil) {
         self.id = id
         self.title = title
         self.fullTitle = fullTitle
@@ -57,6 +73,53 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
         self.deviceId = deviceId
         self.selectedParamsList = selectedParamsList
         self.customerId = customerId
+        self.attributes = attributes
+        self.isVirtual = isVirtual
+        self.admissionDate = admissionDate
+        self.currentRatio = currentRatio
+        self.voltageRatio = voltageRatio
+    }
+
+    /// День «гггг-мм-дд», до которого точка допущена; nil — не указан (сервер может прислать «0001-01-01»).
+    var admissionDay: String? {
+        guard let admissionDate, admissionDate.count >= 10, !admissionDate.hasPrefix("0001-") else {
+            return nil
+        }
+        return String(admissionDate.prefix(10))
+    }
+
+    /// Срок допуска истёк: день допуска уже прошёл (`today` — «гггг-мм-дд», см. Equipment.calendarDay(of:)).
+    func isAdmissionExpired(today: String) -> Bool {
+        guard let admissionDay else {
+            return false
+        }
+        return admissionDay < today
+    }
+
+    /// Коэффициенты трансформации для показа — только у электроснабжения и только отличные от 1.
+    var transformationRatios: (current: Double?, voltage: Double?) {
+        guard systemType == "Electricity" else {
+            return (nil, nil)
+        }
+        let current = currentRatio.flatMap { $0 != 1 && $0 > 0 ? $0 : nil }
+        let voltage = voltageRatio.flatMap { $0 != 1 && $0 > 0 ? $0 : nil }
+        return (current, voltage)
+    }
+
+    /// Атрибуты для показа: только со значением; название — из справочника атрибутов (`titles`: код → название),
+    /// нет в справочнике — код. Как у объекта (Node.filledAttributes).
+    func filledAttributes(titles: [String: String]) -> [(title: String, value: String)] {
+        var result: [(title: String, value: String)] = []
+        for attribute in attributes ?? [] {
+            let value = (attribute.value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let code = attribute.code ?? ""
+            let title = (titles[code] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let name = title.isEmpty ? code : title
+            if !value.isEmpty && !name.isEmpty {
+                result.append((title: name, value: value))
+            }
+        }
+        return result
     }
 
     var itemState: ItemState {
@@ -174,5 +237,31 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
         default:
             return "circle.dashed"
         }
+    }
+}
+
+/// Пользовательский атрибут точки: код и значение («DateLimitTo» = «04.06.2026»).
+nonisolated struct PointAttribute: Codable, Hashable, Sendable {
+    let code: String?
+    let value: String?
+}
+
+/// Запись справочника пользовательских атрибутов (GET /api/v1/Inventory/CustomAttributes): код и название.
+/// Нужен, потому что у точек сервер присылает только коды атрибутов. Лишние поля JSONDecoder пропускает.
+nonisolated struct CustomAttributeResponse: Decodable, Sendable {
+    let code: String?
+    let title: String?
+
+    /// Код → название (без пустых).
+    static func makeTitles(from response: [CustomAttributeResponse]) -> [String: String] {
+        var titles: [String: String] = [:]
+        for item in response {
+            let code = item.code ?? ""
+            let title = (item.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !code.isEmpty && !title.isEmpty {
+                titles[code] = title
+            }
+        }
+        return titles
     }
 }

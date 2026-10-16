@@ -115,6 +115,11 @@ nonisolated enum TextFormatting {
         return "\(date.formatted(dayStyle)) в \(date.formatted(timeStyle))"
     }
 
+    /// Число без лишних нулей: 30 → «30», 0,5 → «0,5» (коэффициенты трансформации).
+    static func plainNumber(_ value: Double) -> String {
+        return value.formatted(.number.locale(russian).grouping(.never))
+    }
+
     // MARK: - Календарная дата
 
     /// День «2024-07-02» (так хранятся даты поверки, см. Equipment) → «02.07.2024».

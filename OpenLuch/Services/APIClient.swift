@@ -245,6 +245,21 @@ nonisolated final class APIClient: Sendable {
         }
     }
 
+    /// Справочник пользовательских атрибутов: GET /api/v1/Inventory/CustomAttributes (~2,4 КБ на весь сервер).
+    /// Нужен только ради названий атрибутов точек (у точек сервер присылает лишь коды).
+    /// Возвращает «код → название».
+    @concurrent
+    func fetchAttributeTitles(token: String) async throws -> [String: String] {
+        let request = makeAuthorizedGETRequest(path: "api/v1/Inventory/CustomAttributes", queryItems: [], token: token)
+        let data = try await download(request, onProgress: { _ in })
+        do {
+            let response = try JSONDecoder().decode([CustomAttributeResponse].self, from: data)
+            return CustomAttributeResponse.makeTitles(from: response)
+        } catch {
+            throw APIError.invalidResponse
+        }
+    }
+
     /// Справочник оборудования: GET /api/v1/Core/Equipment (без параметров — весь список).
     /// Ответ тяжёлый (на my.lers.ru 64 прибора — 363 КБ, три четверти — описания моделей),
     /// более лёгкого способа получить список в API нет (см. docs/api-notes.md).
