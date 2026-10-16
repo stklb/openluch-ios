@@ -144,12 +144,13 @@ struct MeasurePointsListView: View {
     }
 
     /// Подпись системы по коду сервера («Heat» → «Теплоснабжение»).
-    private static func systemTitle(_ systemType: String) -> String {
+    /// nonisolated — передаётся в map/distinct как обычная функция, главный поток ей не нужен.
+    private nonisolated static func systemTitle(_ systemType: String) -> String {
         return MeasurePoint.systemTitle(for: systemType)
     }
 
     /// Подпись типа связи по коду сервера; не указан — «Не указан».
-    private static func commLinkTitle(_ commLinkType: String) -> String {
+    private nonisolated static func commLinkTitle(_ commLinkType: String) -> String {
         return MeasurePoint.commLinkTitle(for: commLinkType) ?? "Не указан"
     }
 
