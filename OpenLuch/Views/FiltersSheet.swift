@@ -56,11 +56,29 @@ struct FiltersSheet<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @Environment(\.dismiss) private var dismiss
+    /// Высота окна по содержимому (панель + строки фильтров) — меряется, пока окно открыто.
+    @State private var fittedHeight: CGFloat = 300
+    /// Текущая высота окна: по содержимому или во весь экран (если пользователь растянул).
+    @State private var detent: PresentationDetent = .height(300)
 
     var body: some View {
         NavigationStack {
             Form {
                 content()
+            }
+            // Без большого пустого отступа над первой строкой (у формы он рассчитан на заголовок раздела).
+            .contentMargins(.top, 8, for: .scrollContent)
+            // Окно ровно по содержимому (адаптивно): 3 строки — низкое окно, появилась строка
+            // с датой — окно подросло. Высота содержимого формы — стандартное измерение iOS 18
+            // (onScrollGeometryChange): строки + отступы + панель с «Готово».
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom
+            } action: { _, newHeight in
+                let wasFitted = detent == .height(fittedHeight)
+                fittedHeight = newHeight
+                if wasFitted {
+                    detent = .height(newHeight)
+                }
             }
             .navigationTitle("Фильтры")
             .navigationBarTitleDisplayMode(.inline)
@@ -77,8 +95,9 @@ struct FiltersSheet<Content: View>: View {
                 }
             }
         }
-        // На iPhone — на полэкрана (можно растянуть): список за окном виден и сразу меняется.
-        .presentationDetents([.medium, .large])
+        // На iPhone — по высоте содержимого (можно растянуть на весь экран): список за окном виден
+        // и сразу меняется.
+        .presentationDetents([.height(fittedHeight), .large], selection: $detent)
     }
 }
 
@@ -106,72 +125,95 @@ struct FilterPicker: View {
     }
 }
 
-/// Строка «Состояние» — тот же выбор одного варианта, для StateFilter.
-struct StateFilterPicker: View {
-    @Binding var selection: StateFilter
-    /// Сколько записей останется при этом состоянии с учётом остальных фильтров.
-    let count: (StateFilter) -> Int
-
-    var body: some View {
-        FilterPicker(
-            title: "Состояние",
-            options: StateFilter.allCases.filter { $0 != .all }.map { FilterOption(value: $0.rawValue, title: $0.title) },
-            selection: Binding(get: { selection == .all ? nil : selection.rawValue },
-                               set: { selection = $0.flatMap(StateFilter.init(rawValue:)) ?? .all }),
-            count: { value in count(value.flatMap(StateFilter.init(rawValue:)) ?? .all) }
-        )
-    }
-}
-
-/// Раздел, где можно отметить несколько вариантов (системы точек учёта): нажатие на строку ставит
-/// или снимает галочку справа — так Apple показывает выбор пунктов из списка (переключатели — для
-/// настроек «вкл/выкл»). Ничего не отмечено — подходят все.
-struct FilterChecklist: View {
+/// Строка-меню, где можно отметить несколько вариантов (состояния, системы, типы связи): компактно,
+/// одной строкой. По нажатию — стандартное меню iOS с галочками; оно не закрывается после каждого
+/// нажатия, так что можно отметить несколько подряд. Справа в строке — что выбрано («Ошибка, Предупреждение»).
+/// Ничего не отмечено — подходят все. Выбирать не из чего (меньше двух вариантов) — строки нет.
+struct FilterMultiMenu: View {
     let title: String
     let options: [FilterOption]
     @Binding var selection: Set<String>
+    /// Пункт меню, снимающий выбор: «Все состояния», «Все системы».
+    let allTitle: String
     /// Сколько записей с этим вариантом с учётом остальных фильтров.
     let count: (String) -> Int
 
     var body: some View {
         if options.count > 1 || !selection.isEmpty {
-            Section {
-                ForEach(options) { option in
-                    let isSelected = selection.contains(option.value)
-                    Button {
-                        if isSelected {
-                            selection.remove(option.value)
-                        } else {
-                            selection.insert(option.value)
-                        }
-                    } label: {
-                        HStack {
-                            Label {
-                                Text("\(option.title) (\(count(option.value)))")
-                                    .foregroundStyle(Color.primary)
-                            } icon: {
-                                if let systemImage = option.systemImage {
-                                    Image(systemName: systemImage)
-                                        .foregroundStyle(option.color)
+            LabeledContent(title) {
+                Menu {
+                    ForEach(options) { option in
+                        Toggle(isOn: Binding(
+                            get: { selection.contains(option.value) },
+                            set: { isOn in
+                                if isOn {
+                                    selection.insert(option.value)
+                                } else {
+                                    selection.remove(option.value)
                                 }
                             }
-                            Spacer()
-                            if isSelected {
-                                Image(systemName: "checkmark")
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.tint)
+                        )) {
+                            Label {
+                                Text("\(option.title) (\(count(option.value)))")
+                            } icon: {
+                                if let systemImage = option.systemImage {
+                                    // В меню iOS перекрашивает значки в один цвет — значок с «зашитым»
+                                    // цветом (.alwaysOriginal) остаётся цветным, как в строках списков.
+                                    Image(uiImage: UIImage(systemName: systemImage)?
+                                        .withTintColor(UIColor(option.color), renderingMode: .alwaysOriginal)
+                                        ?? UIImage())
+                                }
                             }
                         }
                     }
-                    // VoiceOver: «Теплоснабжение (3), выбрано».
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                    if !selection.isEmpty {
+                        Divider()
+                        Button(allTitle) {
+                            selection = []
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(summary)
+                            .lineLimit(1)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .imageScale(.small)
+                    }
+                    .foregroundStyle(.secondary)
                 }
-            } header: {
-                Text(title)
-            } footer: {
-                Text("Можно отметить несколько. Ничего не отмечено — все.")
+                // Меню остаётся открытым — можно отметить несколько вариантов подряд.
+                .menuActionDismissBehavior(.disabled)
             }
         }
+    }
+
+    /// «Все», «Ошибка» или «Ошибка, Предупреждение» — в порядке вариантов меню.
+    private var summary: String {
+        if selection.isEmpty {
+            return "Все"
+        }
+        return options.filter { selection.contains($0.value) }.map(\.title).joined(separator: ", ")
+    }
+}
+
+/// Строка «Состояние» — FilterMultiMenu с цветными кружками, как в строках списков.
+struct StateFilterMenu: View {
+    @Binding var selection: Set<StateFilter>
+    /// Сколько записей с этим состоянием с учётом остальных фильтров.
+    let count: (StateFilter) -> Int
+
+    var body: some View {
+        FilterMultiMenu(
+            title: "Состояние",
+            options: StateFilter.allCases.map { state in
+                FilterOption(value: state.rawValue, title: state.title,
+                             systemImage: "circle.fill", color: state.itemState.color)
+            },
+            selection: Binding(get: { Set(selection.map(\.rawValue)) },
+                               set: { selection = Set($0.compactMap(StateFilter.init(rawValue:))) }),
+            allTitle: "Все состояния",
+            count: { value in StateFilter(rawValue: value).map(count) ?? 0 }
+        )
     }
 }
 

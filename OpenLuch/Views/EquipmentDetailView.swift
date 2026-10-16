@@ -228,7 +228,8 @@ struct EquipmentConnectionRow: View {
 
         if let modemId = connection.modemEquipmentId, let modem = dataStore.equipment(withId: modemId) {
             NavigationLink(value: modem) {
-                CaptionedEquipmentLink(equipment: modem, caption: linkTitle)
+                CaptionedEquipmentLink(equipment: modem, caption: linkTitle,
+                                       captionSymbol: MeasurePoint.commLinkSymbolName(for: connection.commLinkType))
             }
             // Модем и при этом адрес Ethernet / IP — адрес отдельной строкой.
             if let ipAddressText = connection.ipAddressText {
@@ -236,16 +237,38 @@ struct EquipmentConnectionRow: View {
                     .textSelection(.enabled)
             }
         } else if let modemTitle = connection.modemTitle {
-            LabeledContent(linkTitle, value: modemTitle)
+            LabeledContent {
+                Text(modemTitle)
+            } label: {
+                CommLinkLabel(commLinkType: connection.commLinkType, title: linkTitle)
+            }
         } else if let ipAddressText = connection.ipAddressText {
             // Ethernet / IP без модема — одной строкой «Ethernet / IP   192.168.1.254:4002»
             // (раньше было две: голое «Ethernet / IP» и под ним «IP-адрес»). Адрес можно скопировать.
-            LabeledContent(linkTitle) {
+            LabeledContent {
                 Text(ipAddressText)
                     .textSelection(.enabled)
+            } label: {
+                CommLinkLabel(commLinkType: connection.commLinkType, title: linkTitle)
             }
         } else {
-            Text(linkTitle)
+            CommLinkLabel(commLinkType: connection.commLinkType, title: linkTitle)
+        }
+    }
+}
+
+/// Тип связи со значком — везде одинаково: в карточках и в фильтре списка точек
+/// (значки — MeasurePoint.commLinkSymbolName, аналоги значков программы ЛЭРС для ПК).
+struct CommLinkLabel: View {
+    let commLinkType: String?
+    let title: String
+
+    var body: some View {
+        Label {
+            Text(title)
+        } icon: {
+            Image(systemName: MeasurePoint.commLinkSymbolName(for: commLinkType))
+                .foregroundStyle(Color.accentColor)
         }
     }
 }
@@ -255,6 +278,8 @@ struct CaptionedEquipmentLink: View {
     let equipment: Equipment
     /// Подпись под названием; по умолчанию — тип оборудования («Прибор учёта»).
     var caption: String? = nil
+    /// Значок перед подписью (тип связи у модема); nil — без значка.
+    var captionSymbol: String? = nil
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -264,9 +289,13 @@ struct CaptionedEquipmentLink: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text(equipment.shortTitle)
-                Text(caption ?? equipment.kindTitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if let captionSymbol {
+                    CaptionLabel(title: caption ?? equipment.kindTitle, systemImage: captionSymbol)
+                } else {
+                    Text(caption ?? equipment.kindTitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

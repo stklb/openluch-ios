@@ -73,10 +73,11 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
         switch systemType {
         case "Heat":
             return "Теплоснабжение"
+        // Горячее и холодное водоснабжение — общепринятыми сокращениями ГВС и ХВС (решение владельца).
         case "HotWater":
-            return "Горячее водоснабжение"
+            return "ГВС"
         case "ColdWater":
-            return "Холодное водоснабжение"
+            return "ХВС"
         case "Steam":
             return "Пар"
         case "Gas":
@@ -149,6 +150,29 @@ nonisolated struct MeasurePoint: Codable, Identifiable, Hashable, Sendable {
             return "Интеграция"
         default:
             return nil
+        }
+    }
+
+    /// Значок канала связи — аналоги значков программы ЛЭРС для ПК из стандартного набора iOS
+    /// (решение владельца 2026-10-16): прямое — разъём кабеля, коммутируемая линия — трубка с волнами,
+    /// GSM (CSD) — кнопочный телефон, GPRS — вышка с радиоволнами, Ethernet / IP — глобус,
+    /// интеграция — обмен в обе стороны; не указан — пунктирный кружок (как у неизвестной системы).
+    static func commLinkSymbolName(for commLinkType: String?) -> String {
+        switch commLinkType {
+        case "Direct":
+            return "cable.connector"
+        case "Dialup":
+            return "phone.connection"
+        case "Gsm":
+            return "candybarphone"
+        case "Gprs":
+            return "antenna.radiowaves.left.and.right"
+        case "Ip":
+            return "globe"
+        case "Integration":
+            return "arrow.left.arrow.right"
+        default:
+            return "circle.dashed"
         }
     }
 }

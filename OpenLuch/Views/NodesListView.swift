@@ -154,8 +154,9 @@ struct NodesListView: View {
     /// «Ошибка · Котельные · Жилой дом» — для строки над списком.
     private func summary(_ current: NodeFilter) -> String {
         var parts: [String] = []
-        if current.state != .all {
-            parts.append(current.state.title)
+        if !current.states.isEmpty {
+            // В порядке вариантов окна: «Ошибка, Предупреждение».
+            parts.append(StateFilter.allCases.filter(current.states.contains).map(\.title).joined(separator: ", "))
         }
         if let group = selectedGroup(current) {
             parts.append(group.title)
@@ -175,8 +176,8 @@ struct NodesListView: View {
     private var filtersSheet: some View {
         FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
             Section {
-                StateFilterPicker(selection: filter.state) { state in
-                    count { $0.state = state }
+                StateFilterMenu(selection: filter.states) { state in
+                    count { $0.states = [state] }
                 }
                 FilterPicker(title: "Группа", options: FilterOption.groups(dataStore.nodeGroups),
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },

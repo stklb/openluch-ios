@@ -12,7 +12,7 @@ final class ListFiltersTests: XCTestCase {
 
         var filter = NodeFilter()
         XCTAssertFalse(filter.isActive)
-        filter.state = .error
+        filter.states = [.error]
         XCTAssertEqual([boiler, house, office].filter { filter.matches($0, groupMembers: nil) }.map(\.id), [1, 2])
         // Состояние И группа: в группе только дом и офис.
         XCTAssertEqual([boiler, house, office].filter { filter.matches($0, groupMembers: [2, 3]) }.map(\.id), [2])
@@ -36,8 +36,13 @@ final class ListFiltersTests: XCTestCase {
         // Группа объектов — через объект точки.
         XCTAssertEqual(points.filter { filter.matches($0, groupMembers: [20]) }.map(\.id), [])
         filter.systems = []
-        filter.commLink = "Gprs"
+        filter.commLinks = ["Gprs"]
         XCTAssertEqual(points.filter { filter.matches($0, groupMembers: [20]) }.map(\.id), [3])
+        // Несколько типов связи; "" — «Не указан» (у точки 2 тип связи не задан).
+        filter.commLinks = ["Gprs", ""]
+        XCTAssertEqual(points.filter { filter.matches($0, groupMembers: nil) }.map(\.id), [1, 2, 3])
+        filter.commLinks = [""]
+        XCTAssertEqual(points.filter { filter.matches($0, groupMembers: nil) }.map(\.id), [2])
     }
 
     func testCalibrationFilter() {
@@ -73,7 +78,7 @@ final class ListFiltersTests: XCTestCase {
 
     func testFiltersAreSavedAndRestored() {
         var filter = PointFilter()
-        filter.state = .problems
+        filter.states = [.error, .warning]
         filter.systems = ["Heat", "Electricity"]
         filter.groupId = 3
         XCTAssertEqual(PointFilter.decode(filter.encoded), filter)

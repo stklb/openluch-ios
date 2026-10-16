@@ -116,11 +116,17 @@ final class DataStoreTests: XCTestCase {
 
     func testStateFilter() {
         let states: [ItemState] = [.normal, .warning, .error, .noData, .unknown, .error]
-        XCTAssertEqual(states.filter { StateFilter.all.matches($0) }.count, 6)
-        XCTAssertEqual(states.filter { StateFilter.problems.matches($0) }.count, 3)
-        XCTAssertEqual(states.filter { StateFilter.error.matches($0) }.count, 2)
-        XCTAssertEqual(states.filter { StateFilter.warning.matches($0) }.count, 1)
-        XCTAssertEqual(states.filter { StateFilter.noData.matches($0) }.count, 1)
+        // Ничего не отмечено — подходят все.
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: []) }.count, 6)
+        // Несколько вариантов сразу: «Ошибка» и «Предупреждение» — все проблемные.
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: [.error, .warning]) }.count, 3)
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: [.error]) }.count, 2)
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: [.noData]) }.count, 1)
+        // «Не определено» — отдельно от «Нет данных» (сервер присылает "None", а не "NoData").
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: [.unknown]) }.count, 1)
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: [.normal]) }.count, 1)
+        // Отмечены все варианты — подходит любая запись.
+        XCTAssertEqual(states.filter { StateFilter.matches($0, selected: Set(StateFilter.allCases)) }.count, 6)
     }
 
     // MARK: - Кэш

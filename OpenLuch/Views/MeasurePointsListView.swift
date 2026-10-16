@@ -156,8 +156,9 @@ struct MeasurePointsListView: View {
     /// «Ошибка · Теплоснабжение, ГВС · Котельные · GPRS» — для строки над списком.
     private func summary(_ current: PointFilter) -> String {
         var parts: [String] = []
-        if current.state != .all {
-            parts.append(current.state.title)
+        if !current.states.isEmpty {
+            // В порядке вариантов окна: «Ошибка, Предупреждение».
+            parts.append(StateFilter.allCases.filter(current.states.contains).map(\.title).joined(separator: ", "))
         }
         if !current.systems.isEmpty {
             parts.append(current.systems.map(MeasurePointsListView.systemTitle).sorted().joined(separator: ", "))
@@ -165,8 +166,8 @@ struct MeasurePointsListView: View {
         if let group = dataStore.nodeGroups.first(where: { $0.id == current.groupId }) {
             parts.append(group.title)
         }
-        if let commLink = current.commLink {
-            parts.append(MeasurePointsListView.commLinkTitle(commLink))
+        if !current.commLinks.isEmpty {
+            parts.append(current.commLinks.map(MeasurePointsListView.commLinkTitle).sorted().joined(separator: ", "))
         }
         if let customer = dataStore.customers.first(where: { $0.id == current.customerId }) {
             parts.append(customer.title)
@@ -177,8 +178,8 @@ struct MeasurePointsListView: View {
     private var filtersSheet: some View {
         FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
             Section {
-                StateFilterPicker(selection: filter.state) { state in
-                    count { $0.state = state }
+                StateFilterMenu(selection: filter.states) { state in
+                    count { $0.states = [state] }
                 }
                 FilterPicker(title: "Группа объектов", options: FilterOption.groups(dataStore.nodeGroups),
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
@@ -190,24 +191,30 @@ struct MeasurePointsListView: View {
                                                 set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } })) { value in
                     count { $0.customerId = value.flatMap { Int($0) } }
                 }
-                FilterPicker(title: "Тип связи",
-                             options: FilterOption.distinct(dataStore.measurePoints, value: { $0.commLinkType ?? "" },
-                                                            title: MeasurePointsListView.commLinkTitle),
-                             selection: filter.commLink) { value in
-                    count { $0.commLink = value }
+                // Системы — со значками, как в строках списка (градусник, краны, молния…).
+                FilterMultiMenu(title: "Система",
+                                options: FilterOption.distinct(dataStore.measurePoints, value: { $0.systemType ?? "" },
+                                                               title: MeasurePointsListView.systemTitle)
+                                    .map { option in
+                                        FilterOption(value: option.value, title: option.title,
+                                                     systemImage: MeasurePoint.systemSymbolName(for: option.value),
+                                                     color: MeasurePoint.systemColor(for: option.value))
+                                    },
+                                selection: filter.systems, allTitle: "Все системы") { value in
+                    count { $0.systems = [value] }
                 }
-            }
-            // Системы — со значками, как в строках списка (градусник, краны, молния…).
-            FilterChecklist(title: "Система",
-                            options: FilterOption.distinct(dataStore.measurePoints, value: { $0.systemType ?? "" },
-                                                           title: MeasurePointsListView.systemTitle)
-                                .map { option in
-                                    FilterOption(value: option.value, title: option.title,
-                                                 systemImage: MeasurePoint.systemSymbolName(for: option.value),
-                                                 color: MeasurePoint.systemColor(for: option.value))
-                                },
-                            selection: filter.systems) { value in
-                count { $0.systems = [value] }
+                // Типы связи — со значками, как в программе ЛЭРС для ПК (глобус, вышка, телефон…).
+                FilterMultiMenu(title: "Тип связи",
+                                options: FilterOption.distinct(dataStore.measurePoints, value: { $0.commLinkType ?? "" },
+                                                               title: MeasurePointsListView.commLinkTitle)
+                                    .map { option in
+                                        FilterOption(value: option.value, title: option.title,
+                                                     systemImage: MeasurePoint.commLinkSymbolName(for: option.value),
+                                                     color: .accentColor)
+                                    },
+                                selection: filter.commLinks, allTitle: "Все типы связи") { value in
+                    count { $0.commLinks = [value] }
+                }
             }
         }
     }

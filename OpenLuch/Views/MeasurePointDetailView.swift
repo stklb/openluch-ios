@@ -279,7 +279,9 @@ struct MeasurePointDetailView: View {
 
         Section {
             if let commLinkTitle = point.commLinkTitle, !isPointLinkShownByDevice {
-                LabeledContent("Канал связи", value: commLinkTitle)
+                LabeledContent("Канал связи") {
+                    CommLinkLabel(commLinkType: point.commLinkType, title: commLinkTitle)
+                }
             }
             ForEach(Array(connections.enumerated()), id: \.offset) { _, connection in
                 EquipmentConnectionRow(connection: connection)

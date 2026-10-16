@@ -5,51 +5,48 @@ import Foundation
 // Как работают:
 //   • у каждого списка свой набор фильтров (структура ниже); выбранные фильтры действуют ВМЕСТЕ —
 //     показываются записи, подходящие под все сразу;
-//   • в каждом фильтре — один вариант (nil — «Все»), кроме «Системы» у точек: там можно отметить
-//     несколько систем сразу (пустой набор — все);
+//   • в каждом фильтре — один вариант (nil — «Все»), кроме «Состояния», «Системы» и «Типа связи»:
+//     там можно отметить несколько вариантов сразу (пустой набор — все);
 //   • фильтры работают на телефоне, по кэшу — трафика не тратят и работают без интернета;
 //   • выбор запоминается между запусками (JSON в настройках приложения, см. `encoded` и `decode`).
 // Окно с фильтрами — FiltersSheet.swift.
 
-/// Фильтр по состоянию: все или только с определённым состоянием.
+/// Вариант фильтра «Состояние» — все состояния, что бывают у объектов и точек, чтобы любая запись
+/// попадала в какой-нибудь вариант. Можно отметить несколько: «Ошибка» и «Предупреждение» — все проблемные.
 nonisolated enum StateFilter: String, CaseIterable, Identifiable, Codable, Sendable {
-    case all
-    case problems
+    case normal
     case error
     case warning
     case noData
+    /// Сервер прислал "None" (обычно у расчётных точек без своего прибора) или незнакомое значение.
+    case unknown
 
     var id: String { rawValue }
 
+    /// Подпись — как у состояния в карточках («Норма», «Не определено»…).
     var title: String {
+        return itemState.title
+    }
+
+    /// Состояние записи, которое отбирает этот вариант.
+    var itemState: ItemState {
         switch self {
-        case .all:
-            return "Все"
-        case .problems:
-            return "Ошибки и предупреждения"
+        case .normal:
+            return .normal
         case .error:
-            return "Ошибка"
+            return .error
         case .warning:
-            return "Предупреждение"
+            return .warning
         case .noData:
-            return "Нет данных"
+            return .noData
+        case .unknown:
+            return .unknown
         }
     }
 
-    /// Подходит ли состояние под фильтр.
-    func matches(_ state: ItemState) -> Bool {
-        switch self {
-        case .all:
-            return true
-        case .problems:
-            return state == .error || state == .warning
-        case .error:
-            return state == .error
-        case .warning:
-            return state == .warning
-        case .noData:
-            return state == .noData
-        }
+    /// Подходит ли состояние записи под отмеченные варианты (ничего не отмечено — подходит любое).
+    static func matches(_ state: ItemState, selected: Set<StateFilter>) -> Bool {
+        return selected.isEmpty || selected.contains { $0.itemState == state }
     }
 }
 
@@ -78,7 +75,8 @@ nonisolated extension SavedFilter {
 // MARK: - Объекты
 
 nonisolated struct NodeFilter: SavedFilter {
-    var state: StateFilter = .all
+    /// Состояния; можно несколько, пусто — все.
+    var states: Set<StateFilter> = []
     /// Группа объектов (NodeGroup.id).
     var groupId: Int?
     /// Тип объекта — как присылает сервер (Node.type: "Node", "House", "PowerSource").
@@ -103,20 +101,21 @@ nonisolated struct NodeFilter: SavedFilter {
         if let season, (node.currentSeason ?? "") != season {
             return false
         }
-        return state.matches(node.itemState)
+        return StateFilter.matches(node.itemState, selected: states)
     }
 }
 
 // MARK: - Точки учёта
 
 nonisolated struct PointFilter: SavedFilter {
-    var state: StateFilter = .all
+    /// Состояния; можно несколько, пусто — все.
+    var states: Set<StateFilter> = []
     /// Системы (MeasurePoint.systemType: "Heat", "HotWater"…). Можно несколько; пусто — все.
     var systems: Set<String> = []
     /// Группа объектов: точки объектов этой группы.
     var groupId: Int?
-    /// Тип связи (MeasurePoint.commLinkType: "Gprs", "Ip"…).
-    var commLink: String?
+    /// Типы связи (MeasurePoint.commLinkType: "Gprs", "Ip"…; не указан — ""). Можно несколько; пусто — все.
+    var commLinks: Set<String> = []
     /// Потребитель (Customer.id) — указанный у точки или у её объекта.
     var customerId: Int?
 
@@ -131,10 +130,10 @@ nonisolated struct PointFilter: SavedFilter {
         if !systems.isEmpty && !systems.contains(point.systemType ?? "") {
             return false
         }
-        if let commLink, (point.commLinkType ?? "") != commLink {
+        if !commLinks.isEmpty && !commLinks.contains(point.commLinkType ?? "") {
             return false
         }
-        return state.matches(point.itemState)
+        return StateFilter.matches(point.itemState, selected: states)
     }
 }
 
