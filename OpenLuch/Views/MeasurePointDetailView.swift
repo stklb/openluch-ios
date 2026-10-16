@@ -335,6 +335,10 @@ extension View {
                 PointArchiveView(point: route.point, model: route.model)
                     .readableWidth()
             }
+            .navigationDestination(for: NodeEquipmentRoute.self) { route in
+                NodeEquipmentView(nodeId: route.nodeId)
+                    .readableWidth()
+            }
             .navigationDestination(for: Incident.self) { incident in
                 IncidentDetailView(incident: incident)
                     .readableWidth()

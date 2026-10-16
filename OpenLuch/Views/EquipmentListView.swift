@@ -225,6 +225,9 @@ struct EquipmentRow: View {
     let equipment: Equipment
     /// Сегодняшний день «гггг-мм-дд» — чтобы отметить истёкший срок поверки.
     let today: String
+    /// Вторая строка вместо объекта установки — на экране оборудования объекта, где объект и так
+    /// известен («Устройство опроса», «Модем»…). nil — объект установки, как в общем списке.
+    var subtitle: String? = nil
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -235,7 +238,7 @@ struct EquipmentRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 titleText
                     .lineLimit(2)
-                Text(equipment.placesTitle ?? "Не установлено на объекте")
+                Text(subtitle ?? equipment.placesTitle ?? "Не установлено на объекте")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

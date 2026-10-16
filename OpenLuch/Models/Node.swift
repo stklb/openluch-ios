@@ -37,13 +37,17 @@ nonisolated struct Node: Codable, Identifiable, Hashable, Sendable {
     /// Потребитель (Customer.id) — для фильтра «Потребитель». Название — в списке потребителей
     /// (приходит вместе со списком объектов, см. DataStore.customers). nil — не указан.
     let customerId: Int?
+    /// Пользовательские атрибуты (их заводит администратор ЛЭРС: номер договора, формулы отчётов…).
+    /// Приходят по флажку getAttributes=true в том же запросе списка объектов (~0,1 КБ на атрибут).
+    /// nil — кэш сохранён прошлой версией приложения.
+    let attributes: [NodeAttribute]?
 
     /// Создание объекта вручную (в тестах). Сервер присылает объекты в JSON — их создаёт JSONDecoder.
     init(id: Int, title: String, address: String, type: String?, state: String?,
          number: Int? = nil, comment: String? = nil, responsibleName: String? = nil,
          currentSeason: String? = nil,
          compositeState: NodeCompositeState? = nil, geoLocation: GeoLocation? = nil,
-         customerId: Int? = nil) {
+         customerId: Int? = nil, attributes: [NodeAttribute]? = nil) {
         self.id = id
         self.title = title
         self.address = address
@@ -56,6 +60,7 @@ nonisolated struct Node: Codable, Identifiable, Hashable, Sendable {
         self.compositeState = compositeState
         self.geoLocation = geoLocation
         self.customerId = customerId
+        self.attributes = attributes
     }
 
     var kind: NodeKind {
@@ -90,6 +95,20 @@ nonisolated struct Node: Codable, Identifiable, Hashable, Sendable {
         }
     }
 
+    /// Атрибуты для показа: только со значением, с названием (нет названия — код атрибута).
+    var filledAttributes: [(title: String, value: String)] {
+        var result: [(title: String, value: String)] = []
+        for attribute in attributes ?? [] {
+            let value = (attribute.value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let title = (attribute.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let name = title.isEmpty ? (attribute.code ?? "") : title
+            if !value.isEmpty && !name.isEmpty {
+                result.append((title: name, value: value))
+            }
+        }
+        return result
+    }
+
     /// Координаты, если они заданы (нули означают «не заданы»).
     var mapLocation: GeoLocation? {
         guard let geoLocation, geoLocation.latitude != 0 || geoLocation.longitude != 0 else {
@@ -105,6 +124,13 @@ nonisolated struct NodeCompositeState: Codable, Hashable, Sendable {
     let incidentState: String?
     let jobState: String?
     let calibrationState: String?
+}
+
+/// Пользовательский атрибут объекта: «Формула (зима)» = «6». Поля как в ответе сервера (NodeCustomAttribute).
+nonisolated struct NodeAttribute: Codable, Hashable, Sendable {
+    let title: String?
+    let code: String?
+    let value: String?
 }
 
 /// Географические координаты.

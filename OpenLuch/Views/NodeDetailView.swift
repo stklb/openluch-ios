@@ -1,7 +1,8 @@
 import SwiftUI
 
 // Карточка объекта учёта: в заголовке — кружок состояния и название; ниже одним блоком адрес,
-// сезон, ответственный (только имя), комментарий; затем незавершённые работы (если есть) и точки учёта.
+// сезон, ответственный (только имя), потребитель, пользовательские атрибуты, комментарий; затем
+// незавершённые работы (если есть), ссылка «Оборудование» (отдельный экран) и точки учёта.
 // Всё берётся из кэша на телефоне — открывается мгновенно и без интернета, трафика не тратит.
 // Сеть нужна, только если пользователь сам нажмёт «Открыть в Картах» (откроется приложение «Карты»).
 struct NodeDetailView: View {
@@ -20,6 +21,7 @@ struct NodeDetailView: View {
             if !jobs.isEmpty {
                 jobsSection(jobs, points: points)
             }
+            equipmentSection
             pointsSection(points)
         }
         // Небольшие отступы между разделами — как в карточке точки.
@@ -51,8 +53,12 @@ struct NodeDetailView: View {
     private func mainSection(_ current: Node) -> some View {
         let responsibleName = current.responsibleName ?? ""
         let comment = current.comment ?? ""
+        // Потребитель — именно тот, что указан у объекта (у точек бывают свои).
+        let customerTitle = dataStore.customers.first { $0.id == current.customerId }?.title ?? ""
+        let attributes = current.filledAttributes
         let hasRows = current.seasonTitle != nil || !current.address.isEmpty
             || current.mapLocation != nil || !responsibleName.isEmpty || !comment.isEmpty
+            || !customerTitle.isEmpty || !attributes.isEmpty
 
         if hasRows {
             Section {
@@ -64,6 +70,13 @@ struct NodeDetailView: View {
                 }
                 if !responsibleName.isEmpty {
                     captionedText("Ответственный", responsibleName)
+                }
+                if !customerTitle.isEmpty {
+                    captionedText("Потребитель", customerTitle)
+                }
+                // Пользовательские атрибуты — как остальные сведения: подпись сверху, значение под ней.
+                ForEach(attributes.indices, id: \.self) { index in
+                    captionedText(attributes[index].title, attributes[index].value)
                 }
                 if !comment.isEmpty {
                     captionedText("Комментарий", comment)
@@ -164,6 +177,24 @@ struct NodeDetailView: View {
             }
         }
         .textSelection(.enabled)
+    }
+
+    /// Ссылка на экран «Оборудование» (приборов бывает много — отдельным экраном, решение владельца
+    /// 2026-10-16). Справочник загружен, а на объекте ничего нет — строки нет.
+    @ViewBuilder
+    private var equipmentSection: some View {
+        let count = NodeEquipment.installed(onNode: node.id, in: dataStore.equipment).count
+        if dataStore.equipmentUpdatedAt == nil || count > 0 {
+            Section {
+                NavigationLink(value: NodeEquipmentRoute(nodeId: node.id)) {
+                    if dataStore.equipmentUpdatedAt == nil {
+                        Text("Оборудование")
+                    } else {
+                        LabeledContent("Оборудование", value: "\(count)")
+                    }
+                }
+            }
+        }
     }
 
     private func pointsSection(_ points: [MeasurePoint]) -> some View {

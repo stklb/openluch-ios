@@ -153,9 +153,10 @@ nonisolated final class APIClient: Sendable {
         }
     }
 
-    /// Список объектов учёта: GET /api/v1/Core/Nodes?getCustomers=true.
-    /// Из дополнительных данных — только потребители (для фильтра «Потребитель»): сервер присылает
-    /// лишь тех, на кого ссылаются объекты, ~0,3 КБ на потребителя (см. docs/api-notes.md).
+    /// Список объектов учёта: GET /api/v1/Core/Nodes?getCustomers=true&getAttributes=true.
+    /// Из дополнительных данных — потребители (для фильтра «Потребитель» и карточки объекта): сервер
+    /// присылает лишь тех, на кого ссылаются объекты, ~0,3 КБ на потребителя; и пользовательские атрибуты
+    /// объектов (~0,1 КБ на атрибут) — для карточки объекта (см. docs/api-notes.md).
     /// Возвращает объекты, потребителей и размер ответа в байтах (его запоминаем, чтобы в следующий раз
     /// заранее показать, сколько придётся скачать).
     @concurrent
@@ -163,7 +164,8 @@ nonisolated final class APIClient: Sendable {
                     onProgress: @escaping @Sendable (DownloadProgress) -> Void = { _ in })
     async throws -> (nodes: [Node], customers: [Customer], responseBytes: Int) {
         let request = makeAuthorizedGETRequest(path: "api/v1/Core/Nodes",
-                                               queryItems: [URLQueryItem(name: "getCustomers", value: "true")],
+                                               queryItems: [URLQueryItem(name: "getCustomers", value: "true"),
+                                                            URLQueryItem(name: "getAttributes", value: "true")],
                                                token: token)
         let data = try await download(request, onProgress: onProgress)
 
