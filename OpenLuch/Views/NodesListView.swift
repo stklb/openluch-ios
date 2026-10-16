@@ -144,16 +144,6 @@ struct NodesListView: View {
         }
     }
 
-    /// Сколько объектов останется, если изменить один фильтр (для чисел у вариантов в окне «Фильтры»).
-    private func count(_ change: (inout NodeFilter) -> Void) -> Int {
-        var changed = filter.wrappedValue
-        change(&changed)
-        let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
-        return dataStore.nodes.filter {
-            changed.matches($0, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofNode: $0))
-        }.count
-    }
-
     /// «Ошибка · Котельные · Жилой дом» — для строки над списком.
     private func summary(_ current: NodeFilter) -> String {
         var parts: [String] = []
@@ -179,31 +169,21 @@ struct NodesListView: View {
     private var filtersSheet: some View {
         FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
             Section {
-                StateFilterMenu(selection: filter.states) { state in
-                    count { $0.states = [state] }
-                }
+                StateFilterMenu(selection: filter.states)
                 FilterPicker(title: "Группа", options: FilterOption.groups(dataStore.nodeGroups),
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
-                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
-                    count { $0.groupId = value.flatMap { Int($0) } }
-                }
+                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } }))
                 FilterPicker(title: "Потребитель", options: FilterOption.customers(dataStore.customers),
                              selection: Binding(get: { filter.wrappedValue.customerId.map(String.init) },
-                                                set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } })) { value in
-                    count { $0.customerId = value.flatMap { Int($0) } }
-                }
+                                                set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } }))
                 FilterPicker(title: "Тип объекта",
                              options: FilterOption.distinct(dataStore.nodes, value: { $0.type ?? "" },
                                                             title: { NodeKind(apiValue: $0).title }),
-                             selection: filter.kind) { value in
-                    count { $0.kind = value }
-                }
+                             selection: filter.kind)
                 FilterPicker(title: "Сезон",
                              options: FilterOption.distinct(dataStore.nodes, value: { $0.currentSeason ?? "" },
                                                             title: { Node.seasonTitle($0) }),
-                             selection: filter.season) { value in
-                    count { $0.season = value }
-                }
+                             selection: filter.season)
             }
         }
     }

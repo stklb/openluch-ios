@@ -143,15 +143,6 @@ struct EquipmentListView: View {
         }
     }
 
-    /// Сколько записей останется, если изменить один фильтр (для чисел у вариантов в окне «Фильтры»).
-    private func count(_ change: (inout EquipmentFilter) -> Void) -> Int {
-        var changed = filter.wrappedValue
-        change(&changed)
-        let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
-        let today = Equipment.calendarDay(of: Date())
-        return dataStore.equipment.filter { changed.matches($0, groupMembers: groupMembers, today: today) }.count
-    }
-
     /// «Нужно поверить до 01.03.2027 · Прибор учёта · Котельные» — для строки над списком.
     private func summary(_ current: EquipmentFilter) -> String {
         var parts: [String] = []
@@ -207,9 +198,7 @@ struct EquipmentListView: View {
                 FilterPicker(title: "Поверка",
                              options: CalibrationFilter.allCases.filter { $0 != .all }
                                 .map { FilterOption(value: $0.rawValue, title: $0.title) },
-                             selection: calibrationSelection) { value in
-                    count { $0.calibration = value.flatMap(CalibrationFilter.init(rawValue:)) ?? .all }
-                }
+                             selection: calibrationSelection)
                 if filter.wrappedValue.calibration == .dueBefore {
                     DatePicker("До", selection: dueBeforeDate, displayedComponents: .date)
                         .environment(\.locale, Locale(identifier: "ru_RU"))
@@ -217,14 +206,10 @@ struct EquipmentListView: View {
                 FilterPicker(title: "Тип",
                              options: FilterOption.distinct(dataStore.equipment, value: { $0.kindTitle },
                                                             title: { $0 }),
-                             selection: filter.kind) { value in
-                    count { $0.kind = value }
-                }
+                             selection: filter.kind)
                 FilterPicker(title: "Группа объектов", options: FilterOption.groups(dataStore.nodeGroups),
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
-                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
-                    count { $0.groupId = value.flatMap { Int($0) } }
-                }
+                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } }))
             }
         }
     }

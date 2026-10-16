@@ -4,8 +4,8 @@ import SwiftUI
 // (решения владельца 2026-10-15). Сами правила фильтров — Models/ListFilters.swift.
 //
 // Окно — обычная форма (Form) поверх списка, на iPhone — на полэкрана: список за ним виден
-// и меняется сразу, пока выбираете. В каждой строке-выборе у вариантов — сколько записей останется
-// с учётом остальных выбранных фильтров («Тепло (42)»).
+// и меняется сразу, пока выбираете. Чисел у вариантов («Тепло (42)») нет — убраны ради простоты
+// и скорости: на серверах с тысячами точек их подсчёт тормозил открытие окна (решение владельца 2026-10-16).
 
 /// Вариант фильтра: значение (как его хранит фильтр) и подпись.
 struct FilterOption: Identifiable, Hashable {
@@ -101,23 +101,21 @@ struct FiltersSheet<Content: View>: View {
     }
 }
 
-/// Строка-выбор одного варианта: «Система   Тепло (42)». Выбирать не из чего (меньше двух вариантов
+/// Строка-выбор одного варианта: «Система   Тепло». Выбирать не из чего (меньше двух вариантов
 /// и ничего не выбрано) — строки нет.
 struct FilterPicker: View {
     let title: String
     let options: [FilterOption]
     /// Выбранный вариант; nil — «Все».
     @Binding var selection: String?
-    /// Сколько записей останется при этом варианте (nil — «Все») с учётом остальных фильтров.
-    let count: (String?) -> Int
 
     var body: some View {
         if options.count > 1 || selection != nil {
             Picker(title, selection: $selection) {
-                Text("Все (\(count(nil)))")
+                Text("Все")
                     .tag(String?.none)
                 ForEach(options) { option in
-                    Text("\(option.title) (\(count(option.value)))")
+                    Text(option.title)
                         .tag(Optional(option.value))
                 }
             }
@@ -135,8 +133,6 @@ struct FilterMultiMenu: View {
     @Binding var selection: Set<String>
     /// Пункт меню, снимающий выбор: «Все состояния», «Все системы».
     let allTitle: String
-    /// Сколько записей с этим вариантом с учётом остальных фильтров.
-    let count: (String) -> Int
 
     var body: some View {
         if options.count > 1 || !selection.isEmpty {
@@ -154,7 +150,7 @@ struct FilterMultiMenu: View {
                             }
                         )) {
                             Label {
-                                Text("\(option.title) (\(count(option.value)))")
+                                Text(option.title)
                             } icon: {
                                 if let systemImage = option.systemImage {
                                     // В меню iOS перекрашивает значки в один цвет — значок с «зашитым»
@@ -199,8 +195,6 @@ struct FilterMultiMenu: View {
 /// Строка «Состояние» — FilterMultiMenu с цветными кружками, как в строках списков.
 struct StateFilterMenu: View {
     @Binding var selection: Set<StateFilter>
-    /// Сколько записей с этим состоянием с учётом остальных фильтров.
-    let count: (StateFilter) -> Int
 
     var body: some View {
         FilterMultiMenu(
@@ -211,8 +205,7 @@ struct StateFilterMenu: View {
             },
             selection: Binding(get: { Set(selection.map(\.rawValue)) },
                                set: { selection = Set($0.compactMap(StateFilter.init(rawValue:))) }),
-            allTitle: "Все состояния",
-            count: { value in StateFilter(rawValue: value).map(count) ?? 0 }
+            allTitle: "Все состояния"
         )
     }
 }

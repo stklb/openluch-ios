@@ -136,16 +136,6 @@ struct MeasurePointsListView: View {
         }
     }
 
-    /// Сколько точек останется, если изменить один фильтр (для чисел у вариантов в окне «Фильтры»).
-    private func count(_ change: (inout PointFilter) -> Void) -> Int {
-        var changed = filter.wrappedValue
-        change(&changed)
-        let groupMembers = dataStore.nodeIds(inGroup: changed.groupId)
-        return dataStore.measurePoints.filter {
-            changed.matches($0, groupMembers: groupMembers, customerIds: dataStore.customerIds(ofPoint: $0))
-        }.count
-    }
-
     /// Подпись системы по коду сервера («Heat» → «Теплоснабжение»).
     /// nonisolated — передаётся в map/distinct как обычная функция, главный поток ей не нужен.
     private nonisolated static func systemTitle(_ systemType: String) -> String {
@@ -182,19 +172,13 @@ struct MeasurePointsListView: View {
     private var filtersSheet: some View {
         FiltersSheet(isActive: filter.wrappedValue.isActive, reset: resetFilter) {
             Section {
-                StateFilterMenu(selection: filter.states) { state in
-                    count { $0.states = [state] }
-                }
+                StateFilterMenu(selection: filter.states)
                 FilterPicker(title: "Группа объектов", options: FilterOption.groups(dataStore.nodeGroups),
                              selection: Binding(get: { filter.wrappedValue.groupId.map(String.init) },
-                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } })) { value in
-                    count { $0.groupId = value.flatMap { Int($0) } }
-                }
+                                                set: { filter.wrappedValue.groupId = $0.flatMap { Int($0) } }))
                 FilterPicker(title: "Потребитель", options: FilterOption.customers(dataStore.customers),
                              selection: Binding(get: { filter.wrappedValue.customerId.map(String.init) },
-                                                set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } })) { value in
-                    count { $0.customerId = value.flatMap { Int($0) } }
-                }
+                                                set: { filter.wrappedValue.customerId = $0.flatMap { Int($0) } }))
                 // Системы — со значками, как в строках списка (градусник, краны, молния…).
                 FilterMultiMenu(title: "Система",
                                 options: FilterOption.distinct(dataStore.measurePoints, value: { $0.systemType ?? "" },
@@ -204,9 +188,7 @@ struct MeasurePointsListView: View {
                                                      systemImage: MeasurePoint.systemSymbolName(for: option.value),
                                                      color: MeasurePoint.systemColor(for: option.value))
                                     },
-                                selection: filter.systems, allTitle: "Все системы") { value in
-                    count { $0.systems = [value] }
-                }
+                                selection: filter.systems, allTitle: "Все системы")
                 // Типы связи — со значками, как в программе ЛЭРС для ПК (глобус, вышка, телефон…).
                 FilterMultiMenu(title: "Тип связи",
                                 options: FilterOption.distinct(dataStore.measurePoints, value: { $0.commLinkType ?? "" },
@@ -216,9 +198,7 @@ struct MeasurePointsListView: View {
                                                      systemImage: MeasurePoint.commLinkSymbolName(for: option.value),
                                                      color: .accentColor)
                                     },
-                                selection: filter.commLinks, allTitle: "Все типы связи") { value in
-                    count { $0.commLinks = [value] }
-                }
+                                selection: filter.commLinks, allTitle: "Все типы связи")
             }
         }
     }
